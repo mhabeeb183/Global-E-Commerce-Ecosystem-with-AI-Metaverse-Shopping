@@ -1,0 +1,54 @@
+
+const express = require("express");
+
+const {
+  createSubscriptionPlan,
+  getSubscriptionPlans,
+  createSubscriptionPurchase,
+} = require("../controllers/subscriptionController");
+
+const {
+  protect,
+} = require("../middleware/authMiddleware");
+
+const router = express.Router();
+
+/*
+=========================================
+PUBLIC ROUTES
+=========================================
+*/
+
+// Get All Subscription Plans
+router.get(
+  "/plans",
+  getSubscriptionPlans
+);
+
+/*
+=========================================
+USER ROUTES
+=========================================
+*/
+
+// Purchase Subscription
+router.post(
+  "/purchase",
+  protect,
+  createSubscriptionPurchase
+);
+
+/*
+=========================================
+ADMIN ROUTES
+=========================================
+*/
+
+// Create Subscription Plan
+router.post(
+  "/plans",
+  protect,
+  createSubscriptionPlan
+);
+
+module.exports = router;

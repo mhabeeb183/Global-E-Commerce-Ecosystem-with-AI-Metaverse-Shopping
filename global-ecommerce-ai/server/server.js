@@ -1,0 +1,335 @@
+
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
+
+require("dotenv").config();
+
+// Redis
+const { connectRedis } = require("./config/redis");
+
+const socketAuth = require(
+  "./socket/socketAuth"
+);
+
+// Existing Routes
+const uploadRoutes = require("./routes/uploadRoutes");
+const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const adminAnalyticsRoutes = require(
+  "./routes/adminAnalyticsRoutes"
+);
+const recommendationRoutes = require(
+  "./routes/recommendationRoutes"
+);
+const wishlistRoutes = require(
+  "./routes/wishlistRoutes"
+);
+const walletRoutes = require(
+  "./routes/walletRoutes"
+);
+const vendorEarningRoutes = require(
+  "./routes/vendorEarningRoutes"
+);
+const withdrawalRoutes = require(
+  "./routes/withdrawalRoutes"
+);
+const dynamicPricingRoutes =
+  require(
+    "./routes/dynamicPricingRoutes"
+  );
+const vendorPricingRoutes =
+  require(
+    "./routes/vendorPricingRoutes"
+  );
+  const adminPricingRoutes = require(
+  "./routes/adminPricingRoutes"
+);
+const chatbotRoutes = require(
+  "./routes/chatbotRoutes"
+);
+const aiRecommendationRoutes = require(
+  "./routes/aiRecommendationRoutes"
+);
+const recommendationAnalyticsRoutes = require(
+  "./routes/recommendationAnalyticsRoutes"
+);
+const recommendationTrackingRoutes = require(
+  "./routes/recommendationTrackingRoutes"
+);
+const affiliateRoutes = require(
+  "./routes/affiliateRoutes"
+);
+const couponRoutes = require(
+  "./routes/couponRoutes"
+);
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+
+// New Routes
+const warehouseRoutes = require("./routes/warehouseRoutes");
+const auctionRoutes = require("./routes/auctionRoutes");
+const liveStreamRoutes = require("./routes/liveStreamRoutes");
+const fraudRoutes = require("./routes/fraudRoutes");
+
+const app = express();
+
+//
+// MIDDLEWARES
+//
+app.use(cors());
+app.use(express.json());
+
+//
+// ROUTES
+//
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use(
+  "/api/admin",
+  adminAnalyticsRoutes
+);
+app.use(
+  "/api/recommendations",
+  recommendationRoutes
+);
+app.use(
+  "/api/wishlist",
+  wishlistRoutes
+);
+app.use(
+  "/api/wallet",
+  walletRoutes
+);
+app.use(
+  "/api/vendor-earnings",
+  vendorEarningRoutes
+);
+app.use(
+  "/api/withdrawals",
+  withdrawalRoutes
+);
+app.use(
+  "/api/dynamic-pricing",
+  dynamicPricingRoutes
+);
+app.use("/api/chatbot", chatbotRoutes);
+
+app.get("/", (req, res) => {
+  res.send("API Running");
+});
+
+app.use(
+  "/api/vendor-pricing",
+  vendorPricingRoutes
+);
+app.use(
+  "/api/admin-pricing",
+  adminPricingRoutes
+);
+app.use(
+  "/api/ai-recommendations",
+  aiRecommendationRoutes
+);
+app.use(
+  "/api/recommendation-analytics",
+  recommendationAnalyticsRoutes
+);
+app.use(
+  "/api/recommendation-tracking",
+  recommendationTrackingRoutes
+);
+app.use(
+  "/api/affiliate",
+  affiliateRoutes
+);
+app.use(
+  "/api/coupons",
+  couponRoutes
+);
+app.use("/api/subscriptions", subscriptionRoutes);
+
+// New Feature Routes
+app.use("/api/warehouses", warehouseRoutes);
+app.use("/api/auctions", auctionRoutes);
+app.use("/api/livestreams", liveStreamRoutes);
+app.use("/api/fraud", fraudRoutes);
+
+//
+// HTTP SERVER
+//
+const server = http.createServer(app);
+
+//
+// SOCKET SERVER
+//
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+//
+// JWT SOCKET AUTH
+//
+socketAuth(io);
+
+//
+// MAKE IO AVAILABLE EVERYWHERE
+//
+app.set("io", io);
+
+//
+// SOCKET EVENTS
+//
+io.on("connection", (socket) => {
+  console.log(
+    `User Connected: ${socket.user.id}`
+  );
+
+  console.log(
+    `Role: ${socket.user.role}`
+  );
+
+  console.log(
+    `Socket ID: ${socket.id}`
+  );
+
+  //
+  // JOIN ORDER ROOM
+  //
+  socket.on("joinOrder", (orderId) => {
+    const room = `order_${orderId}`;
+
+    socket.join(room);
+
+    console.log(
+      `User ${socket.user.id} joined ${room}`
+    );
+  });
+
+  //
+  // LEAVE ORDER ROOM
+  //
+  socket.on("leaveOrder", (orderId) => {
+    const room = `order_${orderId}`;
+
+    socket.leave(room);
+
+    console.log(
+      `User ${socket.user.id} left ${room}`
+    );
+  });
+
+  //
+  // AUCTION EVENTS
+  //
+  socket.on("joinAuction", (auctionId) => {
+    const room = `auction_${auctionId}`;
+    socket.join(room);
+    console.log(`User ${socket.user.id} joined auction ${room}`);
+  });
+
+  socket.on("leaveAuction", (auctionId) => {
+    const room = `auction_${auctionId}`;
+    socket.leave(room);
+    console.log(`User ${socket.user.id} left auction ${room}`);
+  });
+
+  //
+  // LIVE STREAM EVENTS
+  //
+  socket.on("joinStream", (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.user.id} joined stream ${roomId}`);
+    io.to(roomId).emit("viewerUpdate", {
+      userId: socket.user.id,
+      action: "joined",
+    });
+  });
+
+  socket.on("leaveStream", (roomId) => {
+    socket.leave(roomId);
+    console.log(`User ${socket.user.id} left stream ${roomId}`);
+    io.to(roomId).emit("viewerUpdate", {
+      userId: socket.user.id,
+      action: "left",
+    });
+  });
+
+  // WebRTC Signaling for Live Streaming
+  socket.on("stream-offer", ({ roomId, offer }) => {
+    socket.to(roomId).emit("stream-offer", { offer, from: socket.id });
+  });
+
+  socket.on("stream-answer", ({ roomId, answer }) => {
+    socket.to(roomId).emit("stream-answer", { answer, from: socket.id });
+  });
+
+  socket.on("ice-candidate", ({ roomId, candidate }) => {
+    socket.to(roomId).emit("ice-candidate", { candidate, from: socket.id });
+  });
+
+  //
+  // DISCONNECT
+  //
+  socket.on("disconnect", () => {
+    console.log(
+      `User Disconnected: ${socket.user.id}`
+    );
+  });
+});
+
+//
+// DATABASE CONNECTION + REDIS
+//
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    // Connect Redis (non-blocking)
+    await connectRedis().catch((err) =>
+      console.log("Redis skipped:", err.message)
+    );
+
+    // Connect MongoDB with fallback
+    try {
+      await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,
+      });
+      console.log("MongoDB Connected to Atlas");
+    } catch (dbErr) {
+      console.log("MongoDB Atlas connection failed:", dbErr.message);
+      console.log("Starting fallback in-memory MongoDB server...");
+      const { MongoMemoryServer } = require("mongodb-memory-server");
+      const mongoServer = await MongoMemoryServer.create();
+      const mongoUri = mongoServer.getUri();
+      await mongoose.connect(mongoUri);
+      console.log("Fallback In-Memory MongoDB Connected successfully at:", mongoUri);
+    }
+
+    // Seed initial database
+    const seedDatabase = require("./utils/seeder");
+    await seedDatabase();
+
+    server.listen(PORT, () => {
+      console.log(
+        `Server running on port ${PORT}`
+      );
+    });
+  } catch (error) {
+    console.error(
+      "Server Startup Error:",
+      error
+    );
+  }
+};
+
+startServer();
