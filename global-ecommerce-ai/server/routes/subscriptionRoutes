@@ -5,6 +5,7 @@ const {
   createSubscriptionPlan,
   getSubscriptionPlans,
   createSubscriptionPurchase,
+  activateWalletSubscription,
 } = require("../controllers/subscriptionController");
 
 const {
@@ -31,11 +32,18 @@ USER ROUTES
 =========================================
 */
 
-// Purchase Subscription
+// Purchase Subscription (get payment info / Razorpay order)
 router.post(
   "/purchase",
   protect,
   createSubscriptionPurchase
+);
+
+// Activate Subscription using Wallet only
+router.post(
+  "/activate-wallet",
+  protect,
+  activateWalletSubscription
 );
 
 /*

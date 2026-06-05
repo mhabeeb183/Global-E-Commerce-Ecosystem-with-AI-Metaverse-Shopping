@@ -265,6 +265,17 @@ io.on("connection", (socket) => {
   });
 
   // WebRTC Signaling for Live Streaming
+  // Targeted peer-to-peer signal (host → specific viewer, viewer → host)
+  socket.on("peer-signal", ({ to, signal }) => {
+    io.to(to).emit("peer-signal", { from: socket.id, signal });
+  });
+
+  // Viewer notifies host (and room) that they are ready to receive stream
+  socket.on("viewer-ready", ({ roomId }) => {
+    socket.to(roomId).emit("viewer-ready", { viewerId: socket.id });
+  });
+
+  // Keep legacy broadcast events for backwards compatibility
   socket.on("stream-offer", ({ roomId, offer }) => {
     socket.to(roomId).emit("stream-offer", { offer, from: socket.id });
   });
@@ -276,6 +287,7 @@ io.on("connection", (socket) => {
   socket.on("ice-candidate", ({ roomId, candidate }) => {
     socket.to(roomId).emit("ice-candidate", { candidate, from: socket.id });
   });
+
 
   //
   // DISCONNECT

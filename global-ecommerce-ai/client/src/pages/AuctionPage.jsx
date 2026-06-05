@@ -8,6 +8,8 @@ const API = "http://localhost:5000/api/auctions";
 const AuctionPage = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const token = userInfo?.token;
+  const role = userInfo?.user?.role || userInfo?.role;
+  const isVendorOrAdmin = role === "vendor" || role === "admin";
   const [auctions, setAuctions] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({
@@ -69,7 +71,7 @@ const AuctionPage = () => {
     <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <h1 style={{ fontSize: "28px", fontWeight: "bold" }}>🔨 Live Auctions</h1>
-        {userInfo && (
+        {isVendorOrAdmin && (
           <button
             onClick={() => setShowCreate(!showCreate)}
             style={{ background: "#8b5cf6", color: "#fff", border: "none", padding: "12px 24px", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}
@@ -79,7 +81,7 @@ const AuctionPage = () => {
         )}
       </div>
 
-      {showCreate && (
+      {isVendorOrAdmin && showCreate && (
         <form onSubmit={handleCreate} style={{ background: "#fff", padding: "24px", borderRadius: "12px", marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
           <h3 style={{ fontWeight: "bold", marginBottom: "16px" }}>Create New Auction</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>

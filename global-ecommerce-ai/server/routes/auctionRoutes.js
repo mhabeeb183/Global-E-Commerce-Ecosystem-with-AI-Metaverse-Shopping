@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
+const adminOrVendor = require("../middleware/adminMiddleware");
 
 const {
   createAuction,
@@ -11,11 +12,15 @@ const {
   cancelAuction,
 } = require("../controllers/auctionController");
 
-router.post("/", protect, createAuction);
+// Only vendors and admins can create auctions
+router.post("/", protect, adminOrVendor, createAuction);
 router.get("/active", getActiveAuctions);
-router.get("/my-auctions", protect, getMyAuctions);
+// Only vendors and admins can view their own auctions
+router.get("/my-auctions", protect, adminOrVendor, getMyAuctions);
 router.get("/:id", getAuctionById);
+// Any logged-in user can place a bid
 router.post("/:id/bid", protect, placeBid);
-router.put("/:id/cancel", protect, cancelAuction);
+// Only vendors and admins can cancel auctions
+router.put("/:id/cancel", protect, adminOrVendor, cancelAuction);
 
 module.exports = router;
