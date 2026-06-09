@@ -53,6 +53,7 @@ const orderSchema = new mongoose.Schema(
         "Shipped",
         "Out For Delivery",
         "Delivered",
+        "Cancelled",
       ],
       default: "Order Placed",
     },
@@ -79,6 +80,34 @@ const orderSchema = new mongoose.Schema(
     vendorEarningsProcessed: {
       type: Boolean,
       default: false,
+    },
+
+    //
+    // ORDER CANCELLATION
+    //
+    isCancelled: {
+      type: Boolean,
+      default: false,
+    },
+
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
+
+    cancellationReason: {
+      type: String,
+      default: null,
+    },
+
+    refundToWallet: {
+      type: Boolean,
+      default: false,
+    },
+
+    refundAmount: {
+      type: Number,
+      default: 0,
     },
   },
   {

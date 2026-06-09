@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Rating from "./Rating";
 import { useTranslation } from "react-i18next";
+import "@google/model-viewer";
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -50,11 +51,29 @@ const ProductCard = ({ product }) => {
         to={`/product/${product._id}`}
         onClick={trackRecommendationClick}
       >
-        <img
-          src={product.images?.[0]}
-          alt={product.name}
-          className="w-full h-60 object-cover"
-        />
+        {product.images?.[0] ? (
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="w-full h-60 object-cover"
+          />
+        ) : product.arModelUrl ? (
+          <div className="w-full h-60 bg-gray-50 flex items-center justify-center overflow-hidden">
+            <model-viewer
+              src={product.arModelUrl}
+              alt={product.name}
+              auto-rotate
+              rotation-per-second="30deg"
+              style={{ width: "100%", height: "100%", pointerEvents: "none" }}
+            ></model-viewer>
+          </div>
+        ) : (
+          <img
+            src="https://placehold.co/400x300/f1f5f9/94a3b8?text=No+Image"
+            alt={product.name}
+            className="w-full h-60 object-cover"
+          />
+        )}
       </Link>
 
       <div className="p-4">

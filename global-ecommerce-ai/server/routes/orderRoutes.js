@@ -8,6 +8,7 @@ const {
   updateOrderStatus,
   markOrderPaid,
   getOrderById,
+  cancelOrder,
 } = require("../controllers/orderController");
 
 const {
@@ -90,6 +91,15 @@ router.put(
   "/:id/pay",
   protect,
   markOrderPaid
+);
+
+//
+// CANCEL ORDER
+//
+router.put(
+  "/:id/cancel",
+  protect,
+  cancelOrder
 );
 
 module.exports = router;

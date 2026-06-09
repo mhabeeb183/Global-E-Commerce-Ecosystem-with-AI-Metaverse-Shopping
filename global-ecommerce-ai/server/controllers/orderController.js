@@ -591,6 +591,104 @@ const markOrderPaid =
   }
 };
 
+
+//
+// CANCEL ORDER
+//
+const cancelOrder = async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        message: "Cancellation reason is required",
+      });
+    }
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    // Only the user who placed the order can cancel
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized to cancel this order",
+      });
+    }
+
+    // Cannot cancel if already delivered or already cancelled
+    const nonCancellableStatuses = ["Delivered", "Cancelled", "Out For Delivery"];
+    if (nonCancellableStatuses.includes(order.orderStatus)) {
+      return res.status(400).json({
+        message: `Order cannot be cancelled. Current status: ${order.orderStatus}`,
+      });
+    }
+
+    // RESTORE STOCK for each item
+    for (const item of order.orderItems) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock += item.qty;
+        product.soldCount = Math.max(0, product.soldCount - item.qty);
+        await product.save();
+      }
+    }
+
+    // REFUND to wallet if order was paid
+    let refundAmount = 0;
+    if (order.isPaid) {
+      refundAmount = order.paidPrice || order.totalPrice;
+
+      const user = await User.findById(req.user._id);
+      if (user) {
+        user.walletBalance = (user.walletBalance || 0) + refundAmount;
+        await user.save();
+      }
+    }
+
+    // UPDATE order
+    order.orderStatus   = "Cancelled";
+    order.isCancelled   = true;
+    order.cancelledAt   = new Date();
+    order.cancellationReason = reason.trim();
+    order.refundToWallet = order.isPaid;
+    order.refundAmount   = refundAmount;
+
+    order.statusHistory.push({
+      status: "Cancelled",
+      updatedAt: new Date(),
+    });
+
+    const updatedOrder = await order.save();
+
+    // SOCKET.IO real-time notification
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`order_${order._id}`).emit("orderStatusUpdated", {
+        orderId: order._id,
+        status: "Cancelled",
+        statusHistory: updatedOrder.statusHistory,
+        cancellationReason: reason.trim(),
+        refundAmount,
+        updatedAt: new Date(),
+      });
+    }
+
+    res.status(200).json({
+      message: "Order cancelled successfully",
+      refundAmount,
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.error("Cancel Order Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -599,4 +697,5 @@ module.exports = {
   updateOrderStatus,
   markOrderPaid,
   getOrderById,
+  cancelOrder,
 };

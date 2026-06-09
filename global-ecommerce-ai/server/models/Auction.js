@@ -24,7 +24,8 @@ const auctionSchema = new mongoose.Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: true,
+      required: false,   // optional — vendor can upload image directly
+      default: null,
     },
     seller: {
       type: mongoose.Schema.Types.ObjectId,

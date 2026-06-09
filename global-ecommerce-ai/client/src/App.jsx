@@ -42,7 +42,7 @@ import AuctionPage from "./pages/AuctionPage";
 import AuctionBidding from "./pages/AuctionBidding";
 import LiveStreamPage from "./pages/LiveStreamPage";
 import FraudDashboard from "./pages/FraudDashboard";
-
+import VirtualShowroom from "./pages/VirtualShowroom";
 
 function App() {
   const { t } = useTranslation();
@@ -371,6 +371,12 @@ function App() {
       <FraudDashboard />
     </ProtectedRoute>
   }
+/>
+
+{/* AR/VR Showroom */}
+<Route
+  path="/virtual-showroom"
+  element={<VirtualShowroom />}
 />
 
 </Routes>

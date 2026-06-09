@@ -91,6 +91,12 @@ const Navbar = () => {
 
         {/* Public Feature Links */}
         <Link
+          to="/virtual-showroom"
+          className="hover:text-purple-400"
+        >
+          🥽 {t("virtualShowroom", "VR Showroom")}
+        </Link>
+        <Link
           to="/auctions"
           className="hover:text-yellow-400"
         >

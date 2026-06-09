@@ -20,6 +20,7 @@ const [editWarehouseLocation, setEditWarehouseLocation] =
   useState("");
 const [editLowStockThreshold, setEditLowStockThreshold] =
   useState(10);
+const [editArModelUrl, setEditArModelUrl] = useState("");
 
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
@@ -28,6 +29,9 @@ const [editLowStockThreshold, setEditLowStockThreshold] =
   const [stock, setStock] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState("");
+  const [arModelUrl, setArModelUrl] = useState("");
+  const [modelFile, setModelFile] = useState(null);
+  const [editModelFile, setEditModelFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
 
@@ -87,6 +91,26 @@ const [editLowStockThreshold, setEditLowStockThreshold] =
   }
 };
 
+  const uploadModelHandler = async (file) => {
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("model", file);
+      const { data } = await axios.post(
+        "http://localhost:5000/api/upload/model",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      setUploading(false);
+      return data.modelUrl;
+    } catch (error) {
+      console.log(error);
+      setUploading(false);
+      alert("Model Upload Failed");
+      return null;
+    }
+  };
+
   const submitHandler = async (e) => {
     e.preventDefault();
 
@@ -97,26 +121,34 @@ const [editLowStockThreshold, setEditLowStockThreshold] =
         },
       };
 
-      const imageUrl = await uploadImageHandler(image);
+      let imageUrl = null;
+      if (image) {
+        imageUrl = await uploadImageHandler(image);
+        if (!imageUrl) {
+          return; // Upload failed
+        }
+      }
 
-if (!imageUrl) {
-  return;
-}
+      let finalModelUrl = arModelUrl;
+      if (modelFile) {
+        const uploadedModel = await uploadModelHandler(modelFile);
+        if (uploadedModel) finalModelUrl = uploadedModel;
+      }
 
-await axios.post(
-  "http://localhost:5000/api/products",
-  {
-    name,
-    brand,
-    description,
-    category,
-    stock,
-    price,
-    images: [imageUrl],
-  
-  },
-  config
-);
+      await axios.post(
+        "http://localhost:5000/api/products",
+        {
+          name,
+          brand,
+          description,
+          category,
+          stock,
+          price,
+          images: imageUrl ? [imageUrl] : [],
+          arModelUrl: finalModelUrl,
+        },
+        config
+      );
 
       alert("Product Added Successfully");
 
@@ -127,6 +159,8 @@ await axios.post(
       setStock("");
       setPrice("");
       setImage(null);
+      setArModelUrl("");
+      setModelFile(null);
       setEditStock("");
       setEditWarehouseLocation("");
       setEditLowStockThreshold(10);
@@ -178,6 +212,12 @@ await axios.post(
       },
     };
 
+    let finalEditModelUrl = editArModelUrl;
+    if (editModelFile) {
+      const uploadedModel = await uploadModelHandler(editModelFile);
+      if (uploadedModel) finalEditModelUrl = uploadedModel;
+    }
+
     await axios.put(
       `http://localhost:5000/api/products/${editingId}`,
       {
@@ -188,6 +228,7 @@ await axios.post(
             editWarehouseLocation,
           lowStockThreshold:
             editLowStockThreshold,
+          arModelUrl: finalEditModelUrl,
       },
       config
     );
@@ -200,6 +241,8 @@ await axios.post(
     setEditStock("");
     setEditWarehouseLocation("");
     setEditLowStockThreshold(10);
+    setEditArModelUrl("");
+    setEditModelFile(null);
 
     fetchProducts();
   } catch (error) {
@@ -324,7 +367,27 @@ await axios.post(
             onChange={(e) =>
              setImage(e.target.files[0])
             }
-            />
+          />
+          
+          <input
+            type="file"
+            accept=".glb,.gltf"
+            className="w-full border p-3 rounded"
+            onChange={(e) =>
+             setModelFile(e.target.files[0])
+            }
+          />
+          <p className="text-xs text-gray-500 -mt-2 ml-2">Upload a 3D Model (.glb) or paste a URL below</p>
+
+          <input
+            type="text"
+            placeholder="AR Model URL (.glb format) [Optional]"
+            className="w-full border p-3 rounded"
+            value={arModelUrl}
+            onChange={(e) =>
+              setArModelUrl(e.target.value)
+            }
+          />
 
         {uploading && (
         <p className="text-blue-600">
@@ -419,6 +482,8 @@ await axios.post(
             setEditLowStockThreshold(
               product.lowStockThreshold || 10
             );
+            
+            setEditArModelUrl(product.arModelUrl || "");
           }}
           className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
         >
@@ -454,6 +519,8 @@ await axios.post(
                 setEditLowStockThreshold(
                   product.lowStockThreshold || 10
                 );
+                
+                setEditArModelUrl(product.arModelUrl || "");
             }}
             className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
           >
@@ -523,6 +590,25 @@ await axios.post(
         )
       }
       placeholder="Low Stock Threshold"
+      className="w-full border p-2 rounded"
+    />
+
+    <input
+      type="file"
+      accept=".glb,.gltf"
+      className="w-full border p-2 rounded"
+      onChange={(e) =>
+        setEditModelFile(e.target.files[0])
+      }
+    />
+
+    <input
+      type="text"
+      value={editArModelUrl}
+      onChange={(e) =>
+        setEditArModelUrl(e.target.value)
+      }
+      placeholder="AR Model URL (.glb)"
       className="w-full border p-2 rounded"
     />
 

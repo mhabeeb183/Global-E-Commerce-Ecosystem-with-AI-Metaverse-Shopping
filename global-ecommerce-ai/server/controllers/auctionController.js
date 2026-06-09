@@ -1,17 +1,49 @@
 const Auction = require("../models/Auction");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+
+// Helper: upload buffer to Cloudinary
+const uploadToCloudinary = (buffer) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "auction_images" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 
 // Create auction
 const createAuction = async (req, res) => {
   try {
+    let imageUrl = "";
+
+    // Upload image to Cloudinary if provided
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      imageUrl = result.secure_url;
+    }
+
     const auctionData = {
-      ...req.body,
-      seller: req.user._id,
-      currentPrice: req.body.startingPrice,
+      title:         req.body.title,
+      description:   req.body.description || "",
+      startingPrice: Number(req.body.startingPrice),
+      bidIncrement:  Number(req.body.bidIncrement) || 10,
+      startTime:     req.body.startTime,
+      endTime:       req.body.endTime,
+      seller:        req.user._id,
+      currentPrice:  Number(req.body.startingPrice),
+      images:        imageUrl ? [imageUrl] : [],
+      // product is now optional
+      ...(req.body.product && { product: req.body.product }),
     };
 
     const auction = await Auction.create(auctionData);
     res.status(201).json({ success: true, auction });
   } catch (error) {
+    console.error("Create Auction Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

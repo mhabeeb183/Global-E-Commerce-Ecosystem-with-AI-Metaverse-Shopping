@@ -134,6 +134,12 @@ const productSchema = new mongoose.Schema(
       },
     ],
 
+    // 3D/AR MODEL
+    arModelUrl: {
+      type: String,
+      default: "",
+    },
+
     // REVIEWS
     reviews: [reviewSchema],
 

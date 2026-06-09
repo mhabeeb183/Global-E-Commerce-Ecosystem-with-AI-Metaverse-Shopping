@@ -233,11 +233,7 @@ const shareAffiliateOnWhatsApp =
     <div className="p-8">
       {/* Product Details */}
       <div className="bg-white rounded-2xl shadow-lg p-6 grid md:grid-cols-2 gap-8">
-        <img
-          src={product.images?.[0]}
-          alt={product.name}
-          className="w-full h-[500px] object-cover rounded-xl"
-        />
+        <ARProductViewer product={product} />
 
         <div>
           <h1 className="text-4xl font-bold">
@@ -370,14 +366,6 @@ const shareAffiliateOnWhatsApp =
 
 
         </div>
-      </div>
-
-      {/* AR/VR Product Viewer */}
-      <div className="mt-12">
-        <h2 className="text-3xl font-bold mb-6">
-          🥽 AR/VR Product View
-        </h2>
-        <ARProductViewer product={product} />
       </div>
 
       {/* Write Review */}
