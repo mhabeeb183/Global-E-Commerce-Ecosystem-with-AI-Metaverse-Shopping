@@ -34,6 +34,35 @@ if (!browserSupportsSpeechRecognition) {
     },
   ]);
 
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        const token = userInfo?.token;
+        if (open && token) {
+          const { data } = await axios.get(
+            "http://localhost:5000/api/chatbot/history",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if (data.messages && data.messages.length > 0) {
+            const formatted = data.messages.map((m) => ({
+              sender: m.sender,
+              text: m.text,
+            }));
+            setMessages(formatted);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat history", error);
+      }
+    };
+    fetchHistory();
+  }, [open]);
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
@@ -126,7 +155,7 @@ if (!browserSupportsSpeechRecognition) {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden">
+        <div className="fixed bottom-24 right-4 left-4 sm:left-auto sm:right-6 w-[calc(100vw-2rem)] sm:w-96 h-[70vh] sm:h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden border border-zinc-200">
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
             <h2 className="font-bold text-lg">
               AI Shopping Assistant

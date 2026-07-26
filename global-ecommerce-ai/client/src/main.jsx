@@ -11,6 +11,18 @@ import { store } from "./redux/store";
 
 import { BrowserRouter } from "react-router-dom";
 
+// Global Axios Request Interceptor to dynamically rewrite localhost:5000 in local networks
+axios.interceptors.request.use(
+  (config) => {
+    if (config.url && config.url.includes("localhost:5000")) {
+      const backendHost = window.location.hostname;
+      config.url = config.url.replace("localhost", backendHost);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Global Axios Interceptor to handle 401 errors
 axios.interceptors.response.use(
   (response) => response,

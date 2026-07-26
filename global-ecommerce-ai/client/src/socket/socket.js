@@ -4,8 +4,17 @@ const userInfo = JSON.parse(
   localStorage.getItem("userInfo")
 );
 
+const getSocketUrl = () => {
+  const envUrl = import.meta.env.VITE_SOCKET_URL;
+  if (envUrl && !envUrl.includes("localhost")) {
+    return envUrl;
+  }
+  const backendHost = window.location.hostname;
+  return `${window.location.protocol}//${backendHost}:5000`;
+};
+
 const socket = io(
-  "http://localhost:5000",
+  getSocketUrl(),
   {
     auth: {
       token: userInfo?.token,

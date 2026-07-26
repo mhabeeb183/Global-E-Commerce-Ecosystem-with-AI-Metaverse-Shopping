@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const Order = require("../models/Order");
+const ChatLog = require("../models/ChatLog");
 
 const chatbotSearch = async (req, res) => {
   try {
@@ -448,6 +449,22 @@ return res.status(200).json({
         : "I couldn't find any products matching your search. Try searching for something else like 'laptop', 'iphone', or 'shoes'!";
     }
 
+    // Save Chat to Database
+    const finalUserId = req.body.userId || req.user?._id;
+    if (finalUserId) {
+      try {
+        let chatLog = await ChatLog.findOne({ user: finalUserId });
+        if (!chatLog) {
+          chatLog = new ChatLog({ user: finalUserId, messages: [] });
+        }
+        chatLog.messages.push({ sender: "user", text: message });
+        chatLog.messages.push({ sender: "bot", text: reply });
+        await chatLog.save();
+      } catch (logErr) {
+        console.error("Failed to save chat log:", logErr.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       userMessage: message,
@@ -465,6 +482,23 @@ return res.status(200).json({
   }
 };
 
+const getChatHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const chatLog = await ChatLog.findOne({ user: userId });
+    res.json({
+      success: true,
+      messages: chatLog ? chatLog.messages : [],
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   chatbotSearch,
+  getChatHistory,
 };

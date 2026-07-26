@@ -23,8 +23,8 @@ const Cart = () => {
   );
 
   return (
-    <div className="mt-12 bg-white p-6 rounded-2xl shadow-lg">
-      <h2 className="text-3xl font-bold mb-6">
+    <div className="mt-6 md:mt-12 bg-white p-4 sm:p-6 rounded-2xl shadow-lg max-w-4xl mx-4 sm:mx-auto">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
         Shopping Cart
       </h2>
 

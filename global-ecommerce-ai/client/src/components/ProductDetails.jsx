@@ -65,20 +65,22 @@ const ProductDetails = () => {
 
         setProduct(foundProduct);
 
-        const userInfo = JSON.parse(
-  localStorage.getItem("userInfo")
-);
+        const userInfo = localStorage.getItem("userInfo")
+          ? JSON.parse(localStorage.getItem("userInfo"))
+          : null;
 
-const { data } = await axios.get(
-  `http://localhost:5000/api/recommendations/${id}`,
-  {
-    headers: {
-      Authorization: `Bearer ${userInfo.token}`,
-    },
-  }
-);
-        setRecommendations(data);
-        console.log("Recommendations:", data);
+        if (userInfo && userInfo.token) {
+          const { data } = await axios.get(
+            `http://localhost:5000/api/recommendations/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${userInfo.token}`,
+              },
+            }
+          );
+          setRecommendations(data || []);
+          console.log("Recommendations:", data);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -230,9 +232,9 @@ const shareAffiliateOnWhatsApp =
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto">
       {/* Product Details */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 grid md:grid-cols-2 gap-8">
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
         <ARProductViewer product={product} />
 
         <div>

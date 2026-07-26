@@ -1,6 +1,9 @@
-
 const express = require("express");
 const mongoose = require("mongoose");
+
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -74,6 +77,7 @@ const warehouseRoutes = require("./routes/warehouseRoutes");
 const auctionRoutes = require("./routes/auctionRoutes");
 const liveStreamRoutes = require("./routes/liveStreamRoutes");
 const fraudRoutes = require("./routes/fraudRoutes");
+const vendorRequestRoutes = require("./routes/vendorRequestRoutes");
 
 const app = express();
 
@@ -160,6 +164,7 @@ app.use("/api/warehouses", warehouseRoutes);
 app.use("/api/auctions", auctionRoutes);
 app.use("/api/livestreams", liveStreamRoutes);
 app.use("/api/fraud", fraudRoutes);
+app.use("/api/vendor-requests", vendorRequestRoutes);
 
 //
 // HTTP SERVER
@@ -313,8 +318,10 @@ const startServer = async () => {
 
     // Connect MongoDB with fallback
     try {
+      console.log("Mongo URI:", process.env.MONGO_URI);
+
       await mongoose.connect(process.env.MONGO_URI, {
-        serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       });
       console.log("MongoDB Connected to Atlas");
     } catch (dbErr) {

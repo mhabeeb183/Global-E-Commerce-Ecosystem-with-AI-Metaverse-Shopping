@@ -23,7 +23,8 @@
     "razorpay": "^2.9.6",
     "redis": "^5.12.1",
     "socket.io": "^4.8.3",
-    "streamifier": "^0.1.1"
+    "streamifier": "^0.1.1",
+    "stripe": "^22.3.2"
   },
   "devDependencies": {
     "mongodb-memory-server": "^11.2.0",

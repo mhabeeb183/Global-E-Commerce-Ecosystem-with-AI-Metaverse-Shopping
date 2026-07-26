@@ -129,14 +129,14 @@ const WarehouseManagement = () => {
   };
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "24px" }}>
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-2 text-gray-800">
         🏭 Warehouse Management
       </h1>
 
       {/* Analytics Cards */}
       {analytics && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "32px" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {[
             { label: "Total Warehouses", value: analytics.totalWarehouses, color: "#3b82f6" },
             { label: "Active", value: analytics.activeWarehouses, color: "#10b981" },
@@ -144,29 +144,25 @@ const WarehouseManagement = () => {
             { label: "Current Stock", value: analytics.totalCurrentStock, color: "#f59e0b" },
             { label: "Utilization", value: analytics.utilizationRate, color: "#ef4444" },
           ].map((card, i) => (
-            <div key={i} style={{ background: "#fff", borderRadius: "12px", padding: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", borderLeft: `4px solid ${card.color}` }}>
-              <p style={{ fontSize: "14px", color: "#6b7280" }}>{card.label}</p>
-              <p style={{ fontSize: "24px", fontWeight: "bold", color: card.color }}>{card.value}</p>
+            <div key={i} className="bg-white rounded-xl p-5 shadow-md border-l-4" style={{ borderLeftColor: card.color }}>
+              <p className="text-sm text-gray-500 font-medium">{card.label}</p>
+              <p className="text-2xl font-bold mt-1" style={{ color: card.color }}>{card.value}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+      <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
         {["warehouses", "addStock", "transfer"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              background: activeTab === tab ? "#3b82f6" : "#e5e7eb",
-              color: activeTab === tab ? "#fff" : "#374151",
-              fontWeight: "600",
-            }}
+            className={`px-4 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer text-sm sm:text-base ${
+              activeTab === tab 
+                ? "bg-blue-600 text-white shadow-md" 
+                : "bg-gray-155 bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
           >
             {tab === "warehouses" ? "📦 Warehouses" : tab === "addStock" ? "➕ Add Stock" : "🔄 Transfer"}
           </button>
@@ -178,77 +174,80 @@ const WarehouseManagement = () => {
         <>
           <button
             onClick={() => setShowForm(!showForm)}
-            style={{ background: "#10b981", color: "#fff", border: "none", padding: "12px 24px", borderRadius: "8px", cursor: "pointer", fontWeight: "600", marginBottom: "16px" }}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-semibold cursor-pointer mb-6 transition-colors text-sm sm:text-base shadow-sm"
           >
             {showForm ? "Cancel" : "+ Create Warehouse"}
           </button>
 
           {showForm && (
-            <form onSubmit={handleCreate} style={{ background: "#fff", padding: "24px", borderRadius: "12px", marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <input placeholder="Warehouse Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-                <input placeholder="Address" value={form.location.address} onChange={(e) => setForm({ ...form, location: { ...form.location, address: e.target.value } })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-                <input placeholder="City" value={form.location.city} onChange={(e) => setForm({ ...form, location: { ...form.location, city: e.target.value } })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-                <input placeholder="Country" value={form.location.country} onChange={(e) => setForm({ ...form, location: { ...form.location, country: e.target.value } })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-                <input type="number" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
+            <form onSubmit={handleCreate} className="bg-white p-6 rounded-xl mb-6 shadow-md animate-in fade-in slide-in-from-top-4 duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input placeholder="Warehouse Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="p-3 border border-gray-350 border-gray-350 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+                <input placeholder="Address" value={form.location.address} onChange={(e) => setForm({ ...form, location: { ...form.location, address: e.target.value } })} required className="p-3 border border-gray-350 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+                <input placeholder="City" value={form.location.city} onChange={(e) => setForm({ ...form, location: { ...form.location, city: e.target.value } })} required className="p-3 border border-gray-350 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+                <input placeholder="Country" value={form.location.country} onChange={(e) => setForm({ ...form, location: { ...form.location, country: e.target.value } })} required className="p-3 border border-gray-350 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+                <input type="number" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} className="p-3 border border-gray-350 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
               </div>
-              <button type="submit" style={{ marginTop: "16px", background: "#3b82f6", color: "#fff", border: "none", padding: "12px 24px", borderRadius: "8px", cursor: "pointer" }}>Create</button>
+              <button type="submit" className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold cursor-pointer transition-colors shadow-sm">Create</button>
             </form>
           )}
 
-          <div style={{ display: "grid", gap: "16px" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {warehouses.map((wh) => (
-              <div key={wh._id} style={{ background: "#fff", borderRadius: "12px", padding: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div key={wh._id} className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow flex flex-col justify-between gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div>
-                    <h3 style={{ fontSize: "18px", fontWeight: "bold" }}>{wh.name}</h3>
-                    <p style={{ color: "#6b7280" }}>{wh.location?.city}, {wh.location?.country}</p>
-                    <p>Capacity: {wh.currentStock}/{wh.capacity} | Status: <span style={{ color: wh.status === "active" ? "#10b981" : "#ef4444", fontWeight: "600" }}>{wh.status}</span></p>
-                    <p style={{ fontSize: "13px", color: "#9ca3af" }}>Products: {wh.products?.length || 0} types</p>
+                    <h3 className="text-lg font-bold text-gray-800">{wh.name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">📍 {wh.location?.city}, {wh.location?.country}</p>
+                    <div className="mt-3 space-y-1 text-sm text-gray-600">
+                      <p>Capacity: <span className="font-semibold">{wh.currentStock}/{wh.capacity}</span></p>
+                      <p>Status: <span className={`font-semibold ${wh.status === "active" ? "text-emerald-600" : "text-rose-600"}`}>{wh.status}</span></p>
+                      <p className="text-xs text-gray-400 mt-2">{wh.products?.length || 0} product types stored</p>
+                    </div>
                   </div>
-                  <button onClick={() => handleDelete(wh._id)} style={{ background: "#ef4444", color: "#fff", border: "none", padding: "8px 16px", borderRadius: "8px", cursor: "pointer" }}>Delete</button>
+                  <button onClick={() => handleDelete(wh._id)} className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-semibold cursor-pointer transition-colors text-sm w-full sm:w-auto text-center shadow-sm">Delete</button>
                 </div>
               </div>
             ))}
-            {warehouses.length === 0 && <p style={{ color: "#9ca3af", textAlign: "center", padding: "40px" }}>No warehouses found</p>}
+            {warehouses.length === 0 && <p className="col-span-full text-gray-400 text-center py-12">No warehouses found</p>}
           </div>
         </>
       )}
 
       {/* Add Stock Tab */}
       {activeTab === "addStock" && (
-        <form onSubmit={handleAddStock} style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "16px" }}>Add Stock to Warehouse</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <select value={stockForm.warehouseId} onChange={(e) => setStockForm({ ...stockForm, warehouseId: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }}>
+        <form onSubmit={handleAddStock} className="bg-white p-6 rounded-xl shadow-md border border-gray-100 max-w-2xl mx-auto">
+          <h3 className="text-lg font-bold text-gray-850 mb-6 text-gray-800">Add Stock to Warehouse</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select value={stockForm.warehouseId} onChange={(e) => setStockForm({ ...stockForm, warehouseId: e.target.value })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full bg-white">
               <option value="">Select Warehouse</option>
               {warehouses.map((wh) => (<option key={wh._id} value={wh._id}>{wh.name}</option>))}
             </select>
-            <input placeholder="Product ID" value={stockForm.productId} onChange={(e) => setStockForm({ ...stockForm, productId: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-            <input type="number" placeholder="Quantity" value={stockForm.quantity} onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-            <input placeholder="Bin Location" value={stockForm.bin} onChange={(e) => setStockForm({ ...stockForm, bin: e.target.value })} style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
+            <input placeholder="Product ID" value={stockForm.productId} onChange={(e) => setStockForm({ ...stockForm, productId: e.target.value })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+            <input type="number" placeholder="Quantity" value={stockForm.quantity} onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+            <input placeholder="Bin Location" value={stockForm.bin} onChange={(e) => setStockForm({ ...stockForm, bin: e.target.value })} className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
           </div>
-          <button type="submit" style={{ marginTop: "16px", background: "#10b981", color: "#fff", border: "none", padding: "12px 24px", borderRadius: "8px", cursor: "pointer" }}>Add Stock</button>
+          <button type="submit" className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-semibold cursor-pointer transition-colors shadow-sm">Add Stock</button>
         </form>
       )}
 
       {/* Transfer Tab */}
       {activeTab === "transfer" && (
-        <form onSubmit={handleTransfer} style={{ background: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "16px" }}>Transfer Stock Between Warehouses</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <select value={transferForm.fromWarehouseId} onChange={(e) => setTransferForm({ ...transferForm, fromWarehouseId: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }}>
+        <form onSubmit={handleTransfer} className="bg-white p-6 rounded-xl shadow-md border border-gray-100 max-w-2xl mx-auto">
+          <h3 className="text-lg font-bold text-gray-850 mb-6 text-gray-800">Transfer Stock Between Warehouses</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select value={transferForm.fromWarehouseId} onChange={(e) => setTransferForm({ ...transferForm, fromWarehouseId: e.target.value })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full bg-white">
               <option value="">From Warehouse</option>
               {warehouses.map((wh) => (<option key={wh._id} value={wh._id}>{wh.name}</option>))}
             </select>
-            <select value={transferForm.toWarehouseId} onChange={(e) => setTransferForm({ ...transferForm, toWarehouseId: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }}>
+            <select value={transferForm.toWarehouseId} onChange={(e) => setTransferForm({ ...transferForm, toWarehouseId: e.target.value })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full bg-white">
               <option value="">To Warehouse</option>
               {warehouses.map((wh) => (<option key={wh._id} value={wh._id}>{wh.name}</option>))}
             </select>
-            <input placeholder="Product ID" value={transferForm.productId} onChange={(e) => setTransferForm({ ...transferForm, productId: e.target.value })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
-            <input type="number" placeholder="Quantity" value={transferForm.quantity} onChange={(e) => setTransferForm({ ...transferForm, quantity: Number(e.target.value) })} required style={{ padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db" }} />
+            <input placeholder="Product ID" value={transferForm.productId} onChange={(e) => setTransferForm({ ...transferForm, productId: e.target.value })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
+            <input type="number" placeholder="Quantity" value={transferForm.quantity} onChange={(e) => setTransferForm({ ...transferForm, quantity: Number(e.target.value) })} required className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full" />
           </div>
-          <button type="submit" style={{ marginTop: "16px", background: "#8b5cf6", color: "#fff", border: "none", padding: "12px 24px", borderRadius: "8px", cursor: "pointer" }}>Transfer</button>
+          <button type="submit" className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold cursor-pointer transition-colors shadow-sm">Transfer</button>
         </form>
       )}
     </div>

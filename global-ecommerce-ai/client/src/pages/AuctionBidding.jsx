@@ -21,7 +21,12 @@ const AuctionBidding = () => {
     fetchAuction();
 
     if (token) {
-      const s = io("http://localhost:5000", {
+      const envUrl = import.meta.env.VITE_SOCKET_URL;
+      const finalSocketUrl = envUrl && !envUrl.includes("localhost")
+        ? envUrl
+        : `${window.location.protocol}//${window.location.hostname}:5000`;
+
+      const s = io(finalSocketUrl, {
         auth: { token },
       });
       setSocket(s);

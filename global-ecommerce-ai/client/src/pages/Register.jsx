@@ -52,8 +52,8 @@ navigate("/login");
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-3xl font-bold text-center mb-6">
+    <div className="max-w-md mx-4 sm:mx-auto mt-16 p-6 sm:p-8 bg-white shadow-lg rounded-lg">
+      <h2 className="text-3xl font-bold text-center mb-6 border-b border-gray-100 pb-4 text-gray-800">
         Register
       </h2>
 

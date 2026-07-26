@@ -13,6 +13,7 @@ const {
 
 const {
   protect,
+  vendorOrAdmin,
 } = require("../middleware/authMiddleware");
 const fraudDetection = require("../middleware/fraudDetection");
 
@@ -70,17 +71,12 @@ router.get(
 );
 
 //
-// UPDATE ORDER STATUS
-//
-// TEMPORARY:
-// protect only so Vendor can update.
-//
-// Later we'll create
-// vendorOrAdmin middleware.
+// UPDATE ORDER STATUS (Vendor or Admin Only)
 //
 router.put(
   "/:id/status",
   protect,
+  vendorOrAdmin,
   updateOrderStatus
 );
 

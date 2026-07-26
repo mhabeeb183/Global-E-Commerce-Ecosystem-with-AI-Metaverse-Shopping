@@ -14,13 +14,14 @@ const {
 
 const { protect } = require("../middleware/authMiddleware");
 const admin = require("../middleware/adminMiddleware");
+const { cacheMiddleware } = require("../services/redisCacheService");
 
 const router = express.Router();
 
 //
 // PUBLIC ROUTES
 //
-router.get("/", getProducts);
+router.get("/", cacheMiddleware("products", 300), getProducts);
 
 //
 // LOW STOCK PRODUCTS (ADMIN)
@@ -30,6 +31,7 @@ router.get(
   "/low-stock",
   protect,
   admin,
+  cacheMiddleware("low-stock", 300),
   getLowStockProducts
 );
 
@@ -57,7 +59,7 @@ router.get(
 //
 // GET PRODUCT BY ID
 //
-router.get("/:id", getProductById);
+router.get("/:id", cacheMiddleware("product", 300), getProductById);
 
 //
 // REVIEW ROUTE (LOGGED-IN USERS)

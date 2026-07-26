@@ -109,6 +109,7 @@ const seedDatabase = async () => {
         stock: 50,
         soldCount: 12,
         images: ["https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=600&auto=format&fit=crop&q=60"],
+        arModelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
         user: vendor._id,
         averageRating: 4.8,
       },

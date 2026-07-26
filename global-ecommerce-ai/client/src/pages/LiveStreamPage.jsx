@@ -5,8 +5,29 @@ import { useParams, Link } from "react-router-dom";
 import { io } from "socket.io-client";
 
 const API = "http://localhost:5000/api/livestreams";
-const SOCKET_URL = "http://localhost:5000";
-const ICE_SERVERS = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+const envUrl = import.meta.env.VITE_SOCKET_URL;
+const SOCKET_URL = envUrl && !envUrl.includes("localhost")
+  ? envUrl
+  : `${window.location.protocol}//${window.location.hostname}:5000`;
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+  ],
+};
 
 const LiveStreamPage = () => {
   const { id } = useParams();

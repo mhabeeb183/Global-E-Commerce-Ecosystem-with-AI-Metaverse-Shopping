@@ -43,6 +43,7 @@ import AuctionBidding from "./pages/AuctionBidding";
 import LiveStreamPage from "./pages/LiveStreamPage";
 import FraudDashboard from "./pages/FraudDashboard";
 import VirtualShowroom from "./pages/VirtualShowroom";
+import VendorRequestForm from "./pages/VendorRequestForm";
 
 function App() {
   const { t } = useTranslation();
@@ -130,9 +131,9 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="px-8 py-8">
-              <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <h1 className="text-4xl font-bold">
+            <div className="px-4 md:px-8 py-6 md:py-8 max-w-7xl mx-auto">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <h1 className="text-2xl sm:text-4xl font-bold text-gray-800">
                   {t("trendingProducts")}
                 </h1>
 
@@ -141,7 +142,7 @@ function App() {
                   placeholder={t("search")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="px-4 py-3 rounded-xl border w-full md:w-96 outline-none"
+                  className="px-4 py-3 rounded-xl border border-gray-200 bg-white w-full md:w-96 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
 
@@ -377,6 +378,12 @@ function App() {
 <Route
   path="/virtual-showroom"
   element={<VirtualShowroom />}
+/>
+
+{/* Become a Vendor request form */}
+<Route
+  path="/become-vendor"
+  element={<VendorRequestForm />}
 />
 
 </Routes>

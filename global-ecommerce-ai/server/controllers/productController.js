@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { cacheDelete, cacheInvalidatePattern } = require("../services/redisCacheService");
 
 // CREATE PRODUCT
 const createProduct = async (req, res) => {
@@ -9,6 +10,9 @@ const createProduct = async (req, res) => {
     });
 
     const savedProduct = await product.save();
+
+    // Invalidate product listings cache
+    await cacheInvalidatePattern("products:*");
 
     res.status(201).json(savedProduct);
   } catch (error) {
@@ -73,6 +77,10 @@ const updateProduct = async (req, res) => {
       });
     }
 
+    // Invalidate cache
+    await cacheInvalidatePattern("products:*");
+    await cacheDelete(`product:/api/products/${req.params.id}`);
+
     res.status(200).json(updatedProduct);
   } catch (error) {
     res.status(500).json({
@@ -94,6 +102,10 @@ const deleteProduct = async (req, res) => {
     }
 
     await product.deleteOne();
+
+    // Invalidate cache
+    await cacheInvalidatePattern("products:*");
+    await cacheDelete(`product:/api/products/${req.params.id}`);
 
     res.status(200).json({
       message: "Product deleted successfully",
@@ -159,6 +171,10 @@ product.averageRating =
   ) / product.reviews.length;
 
 await product.save();
+
+// Invalidate cache
+await cacheInvalidatePattern("products:*");
+await cacheDelete(`product:/api/products/${req.params.id}`);
 
 res.status(201).json({
   message:
