@@ -1,25 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "@google/model-viewer";
+import axios from "axios";
 
 /**
  * AR/VR Product Viewer Component
  * Uses @google/model-viewer for true 3D and AR experiences.
  * If arModelUrl is not provided, it falls back to displaying the product image.
+ * Supports desktop QR Code scanning to view on mobile.
  */
 const ARProductViewer = ({ product }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [localIp, setLocalIp] = useState("localhost");
+  const modelViewerRef = useRef(null);
 
   useEffect(() => {
     setIsMounted(true);
+    // Fetch PC's network IP from server for QR code connection
+    axios.get("http://localhost:5000/api/scenes/ip")
+      .then(({ data }) => {
+        if (data.ip) {
+          setLocalIp(data.ip);
+        }
+      })
+      .catch((err) => {
+        console.error("Could not fetch server local IP:", err);
+      });
   }, []);
 
   if (!isMounted) return null;
 
   const modelUrl = product?.arModelUrl;
   const posterUrl = product?.images?.[0] || "https://modelviewer.dev/shared-assets/models/Astronaut.png";
+  
+  // Get current page URL and replace localhost with the real PC IP for mobile scanning
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const displayUrl = currentUrl.replace("localhost", localIp);
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(displayUrl)}&color=000000&bgcolor=ffffff`;
+
+  const handleARActivation = () => {
+    const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    
+    if (isMobileDevice && modelViewerRef.current) {
+      // Trigger native mobile AR core/AR kit session
+      modelViewerRef.current.activateAR();
+    } else {
+      // Show QR code scanner overlay for desktop users
+      setShowQrModal(true);
+    }
+  };
 
   return (
-    <div style={{ borderRadius: "16px", overflow: "hidden", background: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
+    <div style={{ borderRadius: "16px", overflow: "hidden", background: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", position: "relative" }}>
       {/* Mode Indicator */}
       <div style={{ display: "flex", borderBottom: "1px solid #e5e7eb", background: "#f9fafb" }}>
         <div style={{ flex: 1, padding: "12px", textAlign: "center", color: "#374151", fontWeight: "600", fontSize: "14px" }}>
@@ -40,44 +72,59 @@ const ARProductViewer = ({ product }) => {
         }}
       >
         {modelUrl ? (
-          <model-viewer
-            src={modelUrl}
-            ios-src={modelUrl.replace(".glb", ".usdz")}
-            poster={posterUrl}
-            alt={product?.name || "A 3D model of the product"}
-            shadow-intensity="1"
-            camera-controls
-            auto-rotate
-            ar
-            ar-modes="webxr scene-viewer quick-look"
-            style={{ width: "100%", height: "100%" }}
-          >
-            {/* Custom AR Button */}
+          <div style={{ width: "100%", height: "100%", position: "relative" }}>
+            <model-viewer
+              ref={modelViewerRef}
+              src={modelUrl}
+              ios-src={modelUrl.replace(".glb", ".usdz")}
+              poster={posterUrl}
+              alt={product?.name || "A 3D model of the product"}
+              shadow-intensity="1"
+              camera-controls
+              auto-rotate
+              ar
+              ar-modes="webxr scene-viewer quick-look"
+              style={{ width: "100%", height: "100%" }}
+            >
+              <div id="ar-prompt">
+                <img src="https://modelviewer.dev/shared-assets/icons/hand.png" alt="AR prompt" />
+              </div>
+            </model-viewer>
+
+            {/* Unified AR Button (Visible on both desktop & mobile) */}
             <button
-              slot="ar-button"
+              onClick={handleARActivation}
               style={{
-                backgroundColor: "white",
-                borderRadius: "4px",
+                backgroundColor: "#2563eb",
+                color: "white",
+                borderRadius: "24px",
                 border: "none",
                 position: "absolute",
-                bottom: "16px",
-                right: "16px",
-                padding: "10px 16px",
+                bottom: "20px",
+                right: "20px",
+                padding: "12px 22px",
                 fontWeight: "bold",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.25)",
+                fontSize: "13px",
+                boxShadow: "0 4px 12px rgba(37,99,235,0.3)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "8px"
+                gap: "8px",
+                transition: "all 0.2s ease",
+                zIndex: 10
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#1d4ed8";
+                e.target.style.transform = "scale(1.03)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "#2563eb";
+                e.target.style.transform = "scale(1)";
               }}
             >
-              👋 View in your space
+              <span>🕶️</span> View in your space
             </button>
-
-            <div id="ar-prompt">
-              <img src="https://modelviewer.dev/shared-assets/icons/hand.png" alt="AR prompt" />
-            </div>
-          </model-viewer>
+          </div>
         ) : (
           <div style={{ textAlign: "center", padding: "20px" }}>
             <img 
@@ -98,12 +145,89 @@ const ARProductViewer = ({ product }) => {
             background: "rgba(0,0,0,0.6)", color: "#fff",
             padding: "6px 14px", borderRadius: "20px", fontSize: "12px",
             backdropFilter: "blur(8px)",
-            pointerEvents: "none"
+            pointerEvents: "none",
+            zIndex: 5
           }}>
-            🎮 Drag to rotate, scroll to zoom. Use AR button on mobile.
+            🎮 Drag to rotate, scroll to zoom. Use AR button to place.
           </div>
         )}
       </div>
+
+      {/* Desktop QR Code AR Modal */}
+      {showQrModal && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.75)",
+          backdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 999,
+          padding: "20px",
+          borderRadius: "16px",
+          animation: "fadeIn 0.25s ease-out forwards"
+        }}>
+          <div style={{
+            background: "#121214",
+            border: "1px solid #27272a",
+            borderRadius: "24px",
+            padding: "32px 24px",
+            maxWidth: "340px",
+            width: "100%",
+            textAlign: "center",
+            color: "white",
+            position: "relative",
+            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.5)"
+          }}>
+            {/* Close Button */}
+            <button
+              onClick={() => setShowQrModal(false)}
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "#1f1f23",
+                border: "1px solid #2d2d30",
+                color: "#a1a1aa",
+                cursor: "pointer",
+                borderRadius: "50%",
+                width: "28px",
+                height: "28px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px"
+              }}
+            >
+              ✕
+            </button>
+
+            <h3 style={{ fontSize: "16px", fontWeight: "800", marginBottom: "8px", letterSpacing: "0.5px" }}>
+              📱 Scan to View in AR
+            </h3>
+            <p style={{ fontSize: "11px", color: "#a1a1aa", lineHeight: "1.5", marginBottom: "20px" }}>
+              Scan the QR code with your mobile camera to instantly place this product in your room!
+            </p>
+
+            {/* QR Code Container */}
+            <div style={{
+              background: "white",
+              padding: "12px",
+              borderRadius: "16px",
+              display: "inline-block",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+              marginBottom: "16px"
+            }}>
+              <img src={qrCodeUrl} alt="AR QR Code" style={{ display: "block" }} />
+            </div>
+
+            <p style={{ fontSize: "10px", color: "#2563eb", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px" }}>
+              ⚡ Powered by WebXR
+            </p>
+          </div>
+        </div>
+      )}
 
       <style>{`
         model-viewer {
@@ -129,6 +253,10 @@ const ARProductViewer = ({ product }) => {
         @keyframes circle {
           from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); }
           to   { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </div>

@@ -44,12 +44,33 @@ import LiveStreamPage from "./pages/LiveStreamPage";
 import FraudDashboard from "./pages/FraudDashboard";
 import VirtualShowroom from "./pages/VirtualShowroom";
 import VendorRequestForm from "./pages/VendorRequestForm";
+import toast, { Toaster } from "react-hot-toast";
 
 function App() {
   const { t } = useTranslation();
   const location = useLocation();
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    // Intercept standard window.alert calls and map them to custom hot toasts
+    window.alert = (message) => {
+      toast(message, {
+        duration: 4000,
+        position: "top-center",
+        style: {
+          background: "#18181b",
+          color: "#fff",
+          borderRadius: "12px",
+          border: "1px solid #27272a",
+          padding: "16px",
+          fontSize: "15px",
+          fontWeight: "500",
+          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)"
+        },
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -388,6 +409,7 @@ function App() {
 
 </Routes>
 <ChatWidget />
+<Toaster />
 </div>
 );
 }

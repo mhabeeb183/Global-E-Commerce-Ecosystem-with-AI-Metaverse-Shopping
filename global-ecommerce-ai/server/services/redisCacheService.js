@@ -69,7 +69,7 @@ const cacheMiddleware = (keyPrefix, ttl = DEFAULT_TTL) => {
     const cached = await cacheGet(cacheKey);
 
     if (cached) {
-      return res.json({ ...cached, fromCache: true });
+      return res.json(cached);
     }
 
     // Override res.json to cache the response

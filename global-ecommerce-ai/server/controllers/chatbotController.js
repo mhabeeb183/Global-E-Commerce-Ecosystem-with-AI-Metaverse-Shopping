@@ -147,40 +147,72 @@ if (
 
   const products = await Product.find();
 
-  const matchedProducts = products.filter(
-    (product) =>
-      cleanedText.includes(
-        product.name.toLowerCase()
-      )
-  );
+  // Find products matching keywords in cleanedText
+  let matchedProducts = products.filter((product) => {
+    const name = product.name.toLowerCase();
+    const brand = product.brand ? product.brand.toLowerCase() : "";
+    const category = product.category ? product.category.toLowerCase() : "";
 
-let recommendation = "";
+    // Direct matches
+    if (cleanedText.includes(name)) return true;
+    if (brand && cleanedText.includes(brand)) return true;
+    if (category && cleanedText.includes(category)) return true;
 
-if (matchedProducts.length >= 2) {
-  const first = matchedProducts[0];
-  const second = matchedProducts[1];
+    // Token-based keyword matching (words length > 3, filtering stop words)
+    const stopWords = ["with", "wireless", "gaming", "mechanical", "noise", "cancelling"];
+    const nameWords = name.split(/\s+/).filter(w => w.length > 3 && !stopWords.includes(w));
+    if (nameWords.some(word => cleanedText.includes(word))) return true;
 
-  const firstScore =
-    (first.rating || 0) * 100 -
-    (first.price || 0) / 1000;
+    return false;
+  });
 
-  const secondScore =
-    (second.rating || 0) * 100 -
-    (second.price || 0) / 1000;
+  // Fallback: If no explicit products matched, but general terms like "both", "them", "these", or "product" are used
+  const isGeneralCompare = cleanedText.includes("both") || cleanedText.includes("them") || cleanedText.includes("these") || cleanedText.includes("product");
+  if (matchedProducts.length < 2 && isGeneralCompare) {
+    const { lastProductIds } = req.body;
+    if (Array.isArray(lastProductIds) && lastProductIds.length >= 2) {
+      // Find the specific products that were in the user's screen context!
+      const lastProducts = await Product.find({ _id: { $in: lastProductIds } });
+      if (lastProducts.length >= 2) {
+        matchedProducts = lastProducts;
+      }
+    }
 
-  recommendation =
-    firstScore > secondScore
-      ? first.name
-      : second.name;
-}
+    // If still less than 2, fall back to top rated products in the catalog
+    if (matchedProducts.length < 2) {
+      const topRated = await Product.find({}).sort({ rating: -1 }).limit(2);
+      if (topRated.length >= 2) {
+        matchedProducts = topRated;
+      }
+    }
+  }
 
-return res.status(200).json({
-  success: true,
-  type: "comparison",
-  recommendation,
-  total: matchedProducts.length,
-  products: matchedProducts,
-});
+  if (matchedProducts.length >= 2) {
+    const first = matchedProducts[0];
+    const second = matchedProducts[1];
+
+    const firstScore =
+      (first.rating || 0) * 100 -
+      (first.price || 0) / 1000;
+
+    const secondScore =
+      (second.rating || 0) * 100 -
+      (second.price || 0) / 1000;
+
+    const recommendation =
+      firstScore > secondScore
+        ? first.name
+        : second.name;
+
+    return res.status(200).json({
+      success: true,
+      type: "comparison",
+      recommendation,
+      total: matchedProducts.length,
+      products: matchedProducts,
+    });
+  }
+  // If matchedProducts.length < 2, we fall through to let the Groq LLM or basic chat responses handle it dynamically.
 }
 
     // =========================

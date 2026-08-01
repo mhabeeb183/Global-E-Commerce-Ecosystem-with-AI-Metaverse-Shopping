@@ -1,5 +1,4 @@
 const razorpay = require("../config/razorpay");
-const stripe = require("../config/stripe");
 
 const createRazorpayOrder = async (req, res) => {
   try {
@@ -66,33 +65,9 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-const createStripePaymentIntent = async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // cents
-      currency: "inr",
-      metadata: { userId: req.user._id.toString() },
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
-
-    res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
 module.exports = {
   createRazorpayOrder,
   verifyPayment,
-  createStripePaymentIntent,
 };
 
 

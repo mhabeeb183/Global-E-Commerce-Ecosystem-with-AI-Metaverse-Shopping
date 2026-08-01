@@ -78,6 +78,8 @@ const auctionRoutes = require("./routes/auctionRoutes");
 const liveStreamRoutes = require("./routes/liveStreamRoutes");
 const fraudRoutes = require("./routes/fraudRoutes");
 const vendorRequestRoutes = require("./routes/vendorRequestRoutes");
+const sceneRoutes = require("./routes/sceneRoutes");
+const hotspotRoutes = require("./routes/hotspotRoutes");
 
 const app = express();
 
@@ -165,6 +167,8 @@ app.use("/api/auctions", auctionRoutes);
 app.use("/api/livestreams", liveStreamRoutes);
 app.use("/api/fraud", fraudRoutes);
 app.use("/api/vendor-requests", vendorRequestRoutes);
+app.use("/api/scenes", sceneRoutes);
+app.use("/api/hotspots", hotspotRoutes);
 
 //
 // HTTP SERVER
@@ -176,7 +180,10 @@ const server = http.createServer(app);
 //
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow all origins to support local network devices (e.g. mobile testing)
+      callback(null, true);
+    },
     credentials: true,
   },
 });

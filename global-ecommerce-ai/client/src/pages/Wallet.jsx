@@ -125,6 +125,39 @@ const addMoneyHandler = async () => {
   }
 };
 
+  const devTopUp = async () => {
+    try {
+      const topUpAmount = Number(amount) || 10000;
+      if (topUpAmount <= 0) {
+        return alert("Enter valid amount");
+      }
+
+      const userInfo = JSON.parse(
+        localStorage.getItem("userInfo")
+      );
+      const token = userInfo?.token;
+
+      const walletResponse = await axios.post(
+        "http://localhost:5000/api/wallet/add-money",
+        {
+          amount: topUpAmount,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setWalletBalance(walletResponse.data.walletBalance);
+      setAmount("");
+      alert(`⚡ Sandbox Bypass: ₹${topUpAmount} added directly!`);
+    } catch (error) {
+      console.log(error);
+      alert("Bypass top up failed");
+    }
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-4xl font-bold mb-8">
@@ -150,12 +183,21 @@ const addMoneyHandler = async () => {
           className="w-full border rounded-lg p-3 mt-6"
         />
 
-        <button
-          onClick={addMoneyHandler}
-          className="mt-4 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600"
-        >
-          Add Money
-        </button>
+        <div className="flex gap-4 mt-4">
+          <button
+            onClick={addMoneyHandler}
+            className="flex-1 bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 font-semibold transition"
+          >
+            Add Money (Razorpay)
+          </button>
+          <button
+            onClick={devTopUp}
+            className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-semibold transition"
+            title="Fast Developer Sandbox Top Up"
+          >
+            ⚡ Sandbox Bypass
+          </button>
+        </div>
       </div>
     </div>
   );

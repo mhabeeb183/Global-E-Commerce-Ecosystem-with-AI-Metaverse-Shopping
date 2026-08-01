@@ -78,12 +78,21 @@ if (!browserSupportsSpeechRecognition) {
       const userInfo = JSON.parse(
         localStorage.getItem("userInfo")
       );
+      
+      // Find the last bot message that has products to provide context
+      const lastBotMsgWithProducts = [...messages]
+        .reverse()
+        .find((m) => m.sender === "bot" && m.products && m.products.length > 0);
+      const lastProductIds = lastBotMsgWithProducts 
+        ? lastBotMsgWithProducts.products.map((p) => p._id) 
+        : [];
 
       const { data } = await axios.post(
         "http://localhost:5000/api/chatbot",
         {
           message,
           userId: userInfo?._id || userInfo?.user?._id,
+          lastProductIds,
         }
       );
 
@@ -192,10 +201,12 @@ if (!browserSupportsSpeechRecognition) {
 
                       <div className="space-y-3">
                         <div>
-                          <strong>
-                            {msg.products[0].name}
+                          <strong
+                            onClick={() => navigate(`/product/${msg.products[0]._id}`)}
+                            className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors block"
+                          >
+                            {msg.products[0].name} 🔗
                           </strong>
-                          <br />
                           Price: ₹
                           {msg.products[0].price}
                           <br />
@@ -208,10 +219,12 @@ if (!browserSupportsSpeechRecognition) {
                         </div>
 
                         <div>
-                          <strong>
-                            {msg.products[1].name}
+                          <strong
+                            onClick={() => navigate(`/product/${msg.products[1]._id}`)}
+                            className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors block"
+                          >
+                            {msg.products[1].name} 🔗
                           </strong>
-                          <br />
                           Price: ₹
                           {msg.products[1].price}
                           <br />
@@ -231,7 +244,7 @@ if (!browserSupportsSpeechRecognition) {
                   )}
 
                 {/* Product Cards */}
-                {msg.products?.map((product) => (
+                {msg.type !== "comparison" && msg.products?.map((product) => (
                   <div
                     key={product._id}
                     className="mt-3 bg-white border rounded-xl shadow-sm overflow-hidden"

@@ -38,10 +38,13 @@ const seedDatabase = async () => {
       console.log("Seeded Subscription Plans successfully.");
     }
 
-    // Check if database is already seeded with all 14 products
+    // Check if database is already seeded with all 20 products and scenes
     const productCount = await Product.countDocuments({});
-    if (productCount >= 14) {
-      console.log("Database already seeded with enough products. Skipping seeder.");
+    const Scene = require("../models/Scene");
+    const sceneCount = await Scene.countDocuments({});
+    
+    if (productCount >= 20 && sceneCount >= 4) {
+      console.log("Database already seeded with enough products & scenes. Skipping seeder.");
       return;
     }
 
@@ -96,7 +99,7 @@ const seedDatabase = async () => {
       console.log("Using existing database users.");
     }
 
-    // 2. Create Products (14 total)
+    // 2. Create Products (20 total)
     const products = await Product.insertMany([
       {
         name: "Meta Quest 3 VR Headset",
@@ -109,7 +112,7 @@ const seedDatabase = async () => {
         stock: 50,
         soldCount: 12,
         images: ["https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=600&auto=format&fit=crop&q=60"],
-        arModelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
+        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/DamagedHelmet/glTF-Binary/DamagedHelmet.glb",
         user: vendor._id,
         averageRating: 4.8,
       },
@@ -222,6 +225,7 @@ const seedDatabase = async () => {
         stock: 25,
         soldCount: 8,
         images: ["https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=600&auto=format&fit=crop&q=60"],
+        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/SheenChair/glTF-Binary/SheenChair.glb",
         user: vendor._id,
         averageRating: 4.3,
       },
@@ -294,6 +298,93 @@ const seedDatabase = async () => {
         images: ["https://images.unsplash.com/photo-1496181130204-755241524eab?w=600&auto=format&fit=crop&q=60"],
         user: vendor._id,
         averageRating: 4.5,
+      },
+      {
+        name: "Lego Star Wars Millennium Falcon",
+        description: "Ultimate collector series Star Wars Millennium Falcon building kit. Contains 7500+ pieces, detailed interior, and multiple minifigures. The ultimate building challenge for fans.",
+        category: "Kids",
+        brand: "Lego",
+        price: 14999,
+        basePrice: 14999,
+        dynamicPrice: 14999,
+        stock: 30,
+        soldCount: 10,
+        images: ["https://images.unsplash.com/photo-1560942485-b2a11cc13456?w=600&auto=format&fit=crop&q=60"],
+        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/ToyCar/glTF-Binary/ToyCar.glb",
+        user: vendor._id,
+        averageRating: 4.9,
+      },
+      {
+        name: "RC Intelligent Dancing Robot",
+        description: "Interactive smart remote control robot that sings, dances, walks, and responds to hand gestures. Perfect educational toy for kids learning technology.",
+        category: "Kids",
+        brand: "Sphero",
+        price: 3999,
+        basePrice: 3999,
+        dynamicPrice: 3999,
+        stock: 45,
+        soldCount: 15,
+        images: ["https://images.unsplash.com/photo-1531303435785-3853ba035cda?w=600&auto=format&fit=crop&q=60"],
+        arModelUrl: "https://modelviewer.dev/shared-assets/models/RobotExpressive.glb",
+        user: vendor._id,
+        averageRating: 4.4,
+      },
+      {
+        name: "Wooden Activity Blocks Castle",
+        description: "Classic building block set with 100 solid wood blocks in various shapes and colors for building castles, towers, and towns. Excellent for early childhood development.",
+        category: "Kids",
+        brand: "Melissa & Doug",
+        price: 1999,
+        basePrice: 1999,
+        dynamicPrice: 1999,
+        stock: 60,
+        soldCount: 25,
+        images: ["https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600&auto=format&fit=crop&q=60"],
+        user: vendor._id,
+        averageRating: 4.6,
+      },
+      {
+        name: "Premium VR Tech Hoodie",
+        description: "Futuristic street-style hoodie with integrated headphone channels, hidden pockets, and water-resistant soft-shell fabric. Sleek look for virtual reality creators.",
+        category: "Fashion",
+        brand: "Metaverse",
+        price: 2999,
+        basePrice: 2999,
+        dynamicPrice: 2999,
+        stock: 80,
+        soldCount: 34,
+        images: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&auto=format&fit=crop&q=60"],
+        user: vendor._id,
+        averageRating: 4.5,
+      },
+      {
+        name: "Cyberpunk LED Sneakers",
+        description: "Light-up LED sneakers with custom colors controlled via mobile app. Rechargeable battery, breathable mesh, and high-traction futuristic design.",
+        category: "Fashion",
+        brand: "FutureWear",
+        price: 7999,
+        basePrice: 7999,
+        dynamicPrice: 7999,
+        stock: 25,
+        soldCount: 8,
+        images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=60"],
+        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb",
+        user: vendor._id,
+        averageRating: 4.7,
+      },
+      {
+        name: "Anti-Radiation Gaming Glasses",
+        description: "Professional blue light blocking glasses designed to reduce eye strain, eliminate glare, and improve visual focus during long virtual showroom visits and gaming sessions.",
+        category: "Fashion",
+        brand: "Gunnar",
+        price: 3499,
+        basePrice: 3499,
+        dynamicPrice: 3499,
+        stock: 65,
+        soldCount: 42,
+        images: ["https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=60"],
+        user: vendor._id,
+        averageRating: 4.3,
       }
     ]);
 
@@ -401,6 +492,156 @@ const seedDatabase = async () => {
     });
 
     console.log("Seeded LiveStreams successfully.");
+
+    // 6. Seed Scenes & Hotspots (VR Virtual Store Module)
+    const Hotspot = require("../models/Hotspot");
+    
+    const countScenes = await Scene.countDocuments({});
+    if (countScenes === 0) {
+      console.log("Seeding VR virtual showroom departments and passages...");
+      
+      const lobbyScene = await Scene.create({
+        name: "Lobby",
+        panoramaUrl: "/assets/lobby_360.jpg",
+        connections: []
+      });
+
+      const kidsScene = await Scene.create({
+        name: "Kids Section",
+        panoramaUrl: "/assets/toys_360.jpg",
+        connections: []
+      });
+
+      const techScene = await Scene.create({
+        name: "Technology Center",
+        panoramaUrl: "/assets/tech_360.jpg",
+        connections: []
+      });
+
+      const fashionScene = await Scene.create({
+        name: "Fashion Boutique",
+        panoramaUrl: "/assets/fashion_360.jpg",
+        connections: []
+      });
+
+      // Symmetrically connect Lobby with other scenes
+      lobbyScene.connections = [kidsScene._id, techScene._id, fashionScene._id];
+      await lobbyScene.save();
+
+      kidsScene.connections = [lobbyScene._id];
+      await kidsScene.save();
+
+      techScene.connections = [lobbyScene._id];
+      await techScene.save();
+
+      fashionScene.connections = [lobbyScene._id];
+      await fashionScene.save();
+
+      // Seed Teleport Hotspots
+      // Lobby Teleports
+      await Hotspot.create({
+        sceneId: lobbyScene._id,
+        targetSceneId: kidsScene._id,
+        pitch: -0.22,
+        yaw: 2.1,
+        type: "teleport",
+        label: "Kids Department"
+      });
+      await Hotspot.create({
+        sceneId: lobbyScene._id,
+        targetSceneId: techScene._id,
+        pitch: -0.25,
+        yaw: 0.0,
+        type: "teleport",
+        label: "Technology Center"
+      });
+      await Hotspot.create({
+        sceneId: lobbyScene._id,
+        targetSceneId: fashionScene._id,
+        pitch: -0.23,
+        yaw: 4.2,
+        type: "teleport",
+        label: "Fashion Boutique"
+      });
+
+      // Room-Back teleports
+      await Hotspot.create({
+        sceneId: kidsScene._id,
+        targetSceneId: lobbyScene._id,
+        pitch: -0.3,
+        yaw: Math.PI,
+        type: "teleport",
+        label: "Back to Lobby"
+      });
+      await Hotspot.create({
+        sceneId: techScene._id,
+        targetSceneId: lobbyScene._id,
+        pitch: -0.3,
+        yaw: Math.PI,
+        type: "teleport",
+        label: "Back to Lobby"
+      });
+      await Hotspot.create({
+        sceneId: fashionScene._id,
+        targetSceneId: lobbyScene._id,
+        pitch: -0.3,
+        yaw: Math.PI,
+        type: "teleport",
+        label: "Back to Lobby"
+      });
+
+      // Product Hotspots
+      // Kids Section products (Lego Millennium Falcon & RC Robot)
+      await Hotspot.create({
+        sceneId: kidsScene._id,
+        productId: products[14]._id, // Lego Star Wars
+        pitch: 0.1,
+        yaw: 0.5,
+        type: "product"
+      });
+      await Hotspot.create({
+        sceneId: kidsScene._id,
+        productId: products[15]._id, // Robot
+        pitch: -0.05,
+        yaw: 1.2,
+        type: "product"
+      });
+
+      // Tech Section products (Meta Quest 3 & Vision Pro)
+      await Hotspot.create({
+        sceneId: techScene._id,
+        productId: products[0]._id, // Meta Quest
+        pitch: -0.08,
+        yaw: 5.5,
+        type: "product"
+      });
+      await Hotspot.create({
+        sceneId: techScene._id,
+        productId: products[4]._id, // Vision Pro
+        pitch: 0.05,
+        yaw: 0.7,
+        type: "product"
+      });
+
+      // Fashion Section products ( hoodie & sneakers)
+      await Hotspot.create({
+        sceneId: fashionScene._id,
+        productId: products[17]._id, // hoodie
+        pitch: 0.12,
+        yaw: 4.8,
+        type: "product"
+      });
+      await Hotspot.create({
+        sceneId: fashionScene._id,
+        productId: products[18]._id, // sneakers
+        pitch: -0.06,
+        yaw: 0.4,
+        type: "product"
+      });
+
+      console.log("Seeded VR Rooms and hotspots successfully.");
+    }
+
     console.log("Seeding Database Completed!");
   } catch (error) {
     console.error("Database Seeding Failed:", error.message);

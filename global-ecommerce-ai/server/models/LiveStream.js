@@ -80,6 +80,53 @@ const liveStreamSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    liveAuction: {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        default: null,
+      },
+      currentPrice: {
+        type: Number,
+        default: 0,
+      },
+      highestBidder: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+      highestBidderName: {
+        type: String,
+        default: "",
+      },
+      timerEnd: {
+        type: Date,
+        default: null,
+      },
+      bids: [
+        {
+          user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+          userName: {
+            type: String,
+          },
+          amount: {
+            type: Number,
+          },
+          timestamp: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      status: {
+        type: String,
+        enum: ["idle", "active", "ended", "sold"],
+        default: "idle",
+      },
+    },
   },
   { timestamps: true }
 );

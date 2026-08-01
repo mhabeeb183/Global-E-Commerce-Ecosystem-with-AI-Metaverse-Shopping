@@ -1,7 +1,6 @@
 const express = require("express");
 const {
   createRazorpayOrder,
-  createStripePaymentIntent,
 } = require("../controllers/paymentController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -14,13 +13,6 @@ router.post(
   protect,
   fraudDetection,
   createRazorpayOrder
-);
-
-router.post(
-  "/stripe-intent",
-  protect,
-  fraudDetection,
-  createStripePaymentIntent
 );
 
 module.exports = router;
