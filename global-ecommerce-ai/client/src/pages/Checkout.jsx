@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { clearCart } from "../redux/cartSlice";
+import { loadRazorpay } from "../utils/razorpay";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -193,6 +194,12 @@ const Checkout = () => {
 
 
       // Razorpay For Remaining Amount
+      const loaded = await loadRazorpay();
+      if (!loaded) {
+        alert("Razorpay SDK failed to load. Please check your internet connection.");
+        return;
+      }
+
       const { data } = await axios.post(
         "http://localhost:5000/api/payment/create-order",
         {

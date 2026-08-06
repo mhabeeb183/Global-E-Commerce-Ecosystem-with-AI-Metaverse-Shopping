@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { loadRazorpay } from "../utils/razorpay";
 
 const API = "http://localhost:5000/api";
 
@@ -64,6 +65,12 @@ const SubscriptionPage = () => {
       }
 
       // Step 2b: Razorpay needed for full or remaining amount
+      const loaded = await loadRazorpay();
+      if (!loaded) {
+        alert("Razorpay SDK failed to load. Please check your internet connection.");
+        return;
+      }
+
       const razorpayOrder = data.razorpayOrder;
       const walletUsed = data.walletUsed || 0;
       const amountToPay = data.amountToPay;

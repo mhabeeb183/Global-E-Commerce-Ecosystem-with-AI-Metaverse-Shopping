@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { loadRazorpay } from "../utils/razorpay";
 
 const Wallet = () => {
   const [walletBalance, setWalletBalance] =
@@ -45,6 +46,12 @@ const addMoneyHandler = async () => {
     const token = userInfo?.token;
 
     // Create Razorpay Order
+    const loaded = await loadRazorpay();
+    if (!loaded) {
+      alert("Razorpay SDK failed to load. Please check your internet connection.");
+      return;
+    }
+
     const { data } = await axios.post(
       "http://localhost:5000/api/payment/create-order",
       {

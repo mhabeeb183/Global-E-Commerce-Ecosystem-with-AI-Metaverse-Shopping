@@ -12,7 +12,12 @@ const ARProductViewer = ({ product }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [localIp, setLocalIp] = useState("localhost");
+  const [modelLoaded, setModelLoaded] = useState(false);
   const modelViewerRef = useRef(null);
+
+  useEffect(() => {
+    setModelLoaded(false);
+  }, [product?.arModelUrl]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -27,6 +32,41 @@ const ARProductViewer = ({ product }) => {
         console.error("Could not fetch server local IP:", err);
       });
   }, []);
+
+  useEffect(() => {
+    const el = modelViewerRef.current;
+    if (!el) return;
+
+    // Check if the model is already loaded (e.g. from browser cache)
+    if (el.loaded) {
+      setModelLoaded(true);
+    }
+
+    const handleLoad = () => {
+      setModelLoaded(true);
+    };
+
+    const handleDismissed = () => {
+      setModelLoaded(true);
+    };
+
+    // Polling backup to catch cases where custom element upgrades late
+    const checkInterval = setInterval(() => {
+      if (el.loaded) {
+        setModelLoaded(true);
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    el.addEventListener("load", handleLoad);
+    el.addEventListener("poster-dismissed", handleDismissed);
+
+    return () => {
+      clearInterval(checkInterval);
+      el.removeEventListener("load", handleLoad);
+      el.removeEventListener("poster-dismissed", handleDismissed);
+    };
+  }, [product?.arModelUrl]);
 
   if (!isMounted) return null;
 
@@ -77,15 +117,25 @@ const ARProductViewer = ({ product }) => {
               ref={modelViewerRef}
               src={modelUrl}
               ios-src={modelUrl.replace(".glb", ".usdz")}
-              poster={posterUrl}
               alt={product?.name || "A 3D model of the product"}
               shadow-intensity="1"
-              camera-controls
-              auto-rotate
-              ar
+              environment-image="neutral"
+              camera-controls="true"
+              interaction-prompt="none"
+              touch-action="pan-y"
+              ar="true"
               ar-modes="webxr scene-viewer quick-look"
-              style={{ width: "100%", height: "100%" }}
+              style={{ width: "100%", height: "100%", display: "block" }}
             >
+              {!modelLoaded && (
+                <div slot="poster" className="custom-poster">
+                  <img src={posterUrl} alt="Product Loading..." className="custom-poster-img" />
+                  <div className="loading-overlay">
+                    <div className="spinner"></div>
+                    <div className="loading-text">Loading 3D Model...</div>
+                  </div>
+                </div>
+              )}
               <div id="ar-prompt">
                 <img src="https://modelviewer.dev/shared-assets/icons/hand.png" alt="AR prompt" />
               </div>
@@ -232,6 +282,54 @@ const ARProductViewer = ({ product }) => {
       <style>{`
         model-viewer {
           --poster-color: transparent;
+        }
+        .custom-poster {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          z-index: 2;
+          transition: opacity 0.5s ease-out;
+        }
+        .custom-poster-img {
+          max-width: 70%;
+          max-height: 70%;
+          object-fit: contain;
+          margin-bottom: 20px;
+        }
+        .loading-overlay {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+        .spinner {
+          width: 32px;
+          height: 32px;
+          border: 4px solid rgba(0, 0, 0, 0.1);
+          border-left-color: #2563eb;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .loading-text {
+          font-size: 13px;
+          color: #1e293b;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .custom-poster.hide {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+        .hide {
+          display: none !important;
         }
         #ar-prompt {
           position: absolute;

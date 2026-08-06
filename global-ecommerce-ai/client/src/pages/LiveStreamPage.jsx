@@ -8,7 +8,7 @@ const API = "http://localhost:5000/api/livestreams";
 const envUrl = import.meta.env.VITE_SOCKET_URL;
 const SOCKET_URL = envUrl && !envUrl.includes("localhost")
   ? envUrl
-  : `${window.location.protocol}//${window.location.hostname}:5000`;
+  : `${window.location.protocol}//${window.location.host}`;
 const DEFAULT_ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },

@@ -9,8 +9,8 @@ const getSocketUrl = () => {
   if (envUrl && !envUrl.includes("localhost")) {
     return envUrl;
   }
-  const backendHost = window.location.hostname;
-  return `${window.location.protocol}//${backendHost}:5000`;
+  const frontendHost = window.location.host;
+  return `${window.location.protocol}//${frontendHost}`;
 };
 
 const socket = io(

@@ -2,7 +2,10 @@ import VendorDashboard from "./pages/VendorDashboard";
 import VendorRoute from "./components/VendorRoute";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "./redux/authSlice";
+import socket from "./socket/socket";
 
 import { fetchProducts } from "./api/productApi";
 
@@ -14,6 +17,7 @@ import ChatWidget from "./components/chatbot/ChatWidget";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProducts from "./pages/AdminProducts";
 import RecommendationAnalytics from "./components/RecommendationAnalytics";
 import SubscriptionPage from "./pages/SubscriptionPage";
 
@@ -49,8 +53,33 @@ import toast, { Toaster } from "react-hot-toast";
 function App() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    socket.on("accountSuspended", (data) => {
+      toast.error(data.message || "Your account has been suspended by administration.", {
+        duration: 8000,
+        position: "top-center",
+        style: {
+          background: "#ef4444",
+          color: "#fff",
+          borderRadius: "12px",
+          padding: "16px",
+          fontWeight: "bold",
+        }
+      });
+      dispatch(logout());
+      localStorage.removeItem("userInfo");
+      navigate("/login");
+    });
+
+    return () => {
+      socket.off("accountSuspended");
+    };
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     // Intercept standard window.alert calls and map them to custom hot toasts
@@ -271,6 +300,15 @@ function App() {
   element={
     <ProtectedRoute>
       <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/products"
+  element={
+    <ProtectedRoute>
+      <AdminProducts />
     </ProtectedRoute>
   }
 />

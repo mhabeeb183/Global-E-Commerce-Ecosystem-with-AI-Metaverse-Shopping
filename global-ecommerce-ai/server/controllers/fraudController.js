@@ -96,6 +96,14 @@ const reviewFraudLog = async (req, res) => {
     // If action is account_suspended, update user
     if (actionTaken === "account_suspended") {
       await User.findByIdAndUpdate(fraudLog.user._id, { isBlocked: true });
+
+      // Emit real-time notification to the user's specific room
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${fraudLog.user._id}`).emit("accountSuspended", {
+          message: "Your account has been suspended by administration.",
+        });
+      }
     }
 
     res.json({ success: true, fraudLog });

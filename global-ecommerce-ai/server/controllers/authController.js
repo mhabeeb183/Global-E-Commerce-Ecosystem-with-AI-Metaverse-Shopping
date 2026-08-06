@@ -19,7 +19,7 @@ const generateToken = (id, role, isAdmin) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: "7d",
+      expiresIn: process.env.JWT_EXPIRES || "7d",
     }
   );
 };
@@ -34,6 +34,12 @@ const registerUser = async (req, res) => {
   role,
   affiliateCode,
 } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
 
     // CHECK EXISTING USER
     const existingUser = await User.findOne({ email });
@@ -131,8 +137,9 @@ if (affiliateCode) {
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({
-      message: error.message,
+      message: "Internal Server Error",
     });
   }
 };
@@ -142,12 +149,24 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
+
     // FIND USER
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(400).json({
         message: "Invalid credentials",
+      });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        message: "Your account is suspended. Please contact support.",
       });
     }
 
@@ -183,8 +202,9 @@ const loginUser = async (req, res) => {
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({
-      message: error.message,
+      message: "Internal Server Error",
     });
   }
 };

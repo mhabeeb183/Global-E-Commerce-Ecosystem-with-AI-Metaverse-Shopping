@@ -1,14 +1,20 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
+const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
+const rateLimit = require("express-rate-limit");
+const compression = require("compression");
 
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
-const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
-
 require("dotenv").config();
+
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is missing from environment variables");
+}
 
 // Redis
 const { connectRedis } = require("./config/redis");
@@ -82,12 +88,116 @@ const sceneRoutes = require("./routes/sceneRoutes");
 const hotspotRoutes = require("./routes/hotspotRoutes");
 
 const app = express();
+app.disable("x-powered-by");
 
-//
-// MIDDLEWARES
-//
-app.use(cors());
-app.use(express.json());
+// Global response interceptor to mask internal errors and sanitize CastErrors
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function (obj) {
+    if (res.statusCode === 500) {
+      console.error(`[500 Error Intercepted on ${req.method} ${req.url}]:`, obj);
+      return originalJson.call(this, { message: "Internal Server Error" });
+    }
+    if (obj && obj.message && (obj.message.includes("Cast to ObjectId") || obj.message.includes("ObjectId failed"))) {
+      res.status(400);
+      return originalJson.call(this, { message: "Invalid ID format" });
+    }
+    return originalJson.call(this, obj);
+  };
+  next();
+});
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
+// Compression
+app.use(compression());
+
+// Permissions-Policy
+app.use((req, res, next) => {
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(self), camera=(self)");
+  next();
+});
+
+// Helmet security headers config
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://res.cloudinary.com",
+          "https://images.unsplash.com",
+          "https://placehold.co",
+          "https://via.placeholder.com",
+          "https://modelviewer.dev",
+          "https://api.qrserver.com"
+        ],
+        connectSrc: [
+          "'self'",
+          "http://localhost:5000",
+          "http://localhost:5173",
+          "ws://localhost:5000",
+          "https://api.razorpay.com",
+          "https://modelviewer.dev",
+          "https://res.cloudinary.com",
+          "wss://localhost:5000"
+        ],
+        fontSrc: ["'self'", "data:"],
+        workerSrc: ["'self'", "blob:"],
+        frameSrc: ["'self'", "https://api.razorpay.com"],
+        frameAncestors: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        manifestSrc: ["'self'"],
+        mediaSrc: ["'self'", "blob:", "data:", "https://res.cloudinary.com"]
+      }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginResourcePolicy: { policy: "same-origin" },
+    originAgentCluster: true,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" }
+  })
+);
+
+// HSTS (Production)
+if (process.env.NODE_ENV === "production") {
+  app.use(
+    helmet.hsts({
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    })
+  );
+}
+
+// CORS Config
+const clientOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+app.use(
+  cors({
+    origin: clientOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 //
 // ROUTES
@@ -180,11 +290,9 @@ const server = http.createServer(app);
 //
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      // Allow all origins to support local network devices (e.g. mobile testing)
-      callback(null, true);
-    },
+    origin: clientOrigin,
     credentials: true,
+    methods: ["GET", "POST"]
   },
 });
 
@@ -213,6 +321,9 @@ io.on("connection", (socket) => {
   console.log(
     `Socket ID: ${socket.id}`
   );
+
+  // Join user's personal room for targeted alerts
+  socket.join(`user_${socket.user.id}`);
 
   //
   // JOIN ORDER ROOM
@@ -311,6 +422,17 @@ io.on("connection", (socket) => {
   });
 });
 
+// Custom 404 Handler
+app.use((req, res, next) => {
+  res.status(404).json({ message: "Route Not Found" });
+});
+
+// Custom 500 Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Internal Server Error" });
+});
+
 //
 // DATABASE CONNECTION + REDIS
 //
@@ -325,7 +447,7 @@ const startServer = async () => {
 
     // Connect MongoDB with fallback
     try {
-      console.log("Mongo URI:", process.env.MONGO_URI);
+      console.log("Connecting to MongoDB...");
 
       await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 10000,

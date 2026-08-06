@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { logout } from "./authSlice";
 
 const initialState = {
   cartItems: localStorage.getItem("cartItems")
@@ -61,6 +62,12 @@ const cartSlice = createSlice({
       state.cartItems = [];
       localStorage.removeItem("cartItems");
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(logout, (state) => {
+      state.cartItems = [];
+      localStorage.removeItem("cartItems");
+    });
   },
 });
 

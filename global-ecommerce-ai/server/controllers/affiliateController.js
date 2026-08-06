@@ -1,7 +1,7 @@
 const Affiliate = require("../models/affiliateModel");
-const Product = require("../models/product");
-const Order = require("../models/order");
-const User = require("../models/user");
+const Product = require("../models/Product");
+const Order = require("../models/Order");
+const User = require("../models/User");
 
 
 // =====================================

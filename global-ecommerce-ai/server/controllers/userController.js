@@ -13,6 +13,12 @@ const registerUser = async (req, res) => {
       role,
     } = req.body;
 
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
     const userExists = await User.findOne({
       email,
     });
@@ -49,7 +55,7 @@ const registerUser = async (req, res) => {
     console.error(error);
 
     res.status(500).json({
-      message: error.message,
+      message: "Internal Server Error",
     });
   }
 };
@@ -58,6 +64,12 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
 
     const user = await User.findOne({
       email,
@@ -92,7 +104,7 @@ const loginUser = async (req, res) => {
     console.error(error);
 
     res.status(500).json({
-      message: error.message,
+      message: "Internal Server Error",
     });
   }
 };

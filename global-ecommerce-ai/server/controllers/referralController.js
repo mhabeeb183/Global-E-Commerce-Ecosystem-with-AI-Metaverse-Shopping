@@ -1,5 +1,5 @@
 const Referral = require("../models/referralModel");
-const User = require("../models/user");
+const User = require("../models/User");
 const Wallet = require("../models/walletModel");
 
 // =====================================

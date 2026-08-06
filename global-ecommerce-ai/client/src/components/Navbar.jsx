@@ -149,6 +149,9 @@ const Navbar = () => {
                       <Link to="/admin/dashboard" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         ⚙️ {t("adminDashboard")}
                       </Link>
+                      <Link to="/admin/products" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        📦 {t("adminProducts", "Manage Products")}
+                      </Link>
                       <Link to="/admin-orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         🛍️ {t("adminOrders")}
                       </Link>
@@ -318,6 +321,9 @@ const Navbar = () => {
               <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider border-b border-zinc-800 pb-1">Admin Portal</p>
               <Link to="/admin/dashboard" className="text-gray-300 hover:text-white py-1 transition-colors">
                 ⚙️ {t("adminDashboard")}
+              </Link>
+              <Link to="/admin/products" className="text-gray-300 hover:text-white py-1 transition-colors">
+                📦 {t("adminProducts", "Manage Products")}
               </Link>
               <Link to="/admin-orders" className="text-gray-300 hover:text-white py-1 transition-colors">
                 🛍️ {t("adminOrders")}

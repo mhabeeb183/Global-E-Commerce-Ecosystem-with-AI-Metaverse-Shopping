@@ -15,13 +15,7 @@ const ChatWidget = () => {
 } = useSpeechRecognition();
 console.log("Transcript =", transcript);
 
-if (!browserSupportsSpeechRecognition) {
-  return (
-    <div>
-      Browser doesn't support speech recognition.
-    </div>
-  );
-}
+// Speech recognition is optional, so we do not block widget rendering if unsupported
 
   const [open, setOpen] = useState(false);
   const [isListeningForChat, setIsListeningForChat] = useState(false);
@@ -302,10 +296,13 @@ if (!browserSupportsSpeechRecognition) {
     </p>
   )}
 
+  {transcript && (
+    <p className="text-xs text-blue-500 mb-2 italic">
+      Transcript: {transcript}
+    </p>
+  )}
+
   <div className="flex gap-2">
-    <p className="text-xs text-blue-500">
-  Transcript: {transcript}
-</p>
     <input
       type="text"
       value={message}
@@ -320,22 +317,24 @@ if (!browserSupportsSpeechRecognition) {
       }
     />
 
-  <button
-    onClick={() => {
-      if (!listening) {
-        startVoiceSearch();
-      } else {
-        SpeechRecognition.stopListening();
-      }
-    }}
-  className={`px-3 rounded-lg ${
-    listening
-      ? "bg-red-500"
-      : "bg-green-500"
-  } text-white`}
->
-  {listening ? "🛑" : "🎤"}
-</button>
+  {browserSupportsSpeechRecognition && (
+    <button
+      onClick={() => {
+        if (!listening) {
+          startVoiceSearch();
+        } else {
+          SpeechRecognition.stopListening();
+        }
+      }}
+      className={`px-3 rounded-lg ${
+        listening
+          ? "bg-red-500"
+          : "bg-green-500"
+      } text-white`}
+    >
+      {listening ? "🛑" : "🎤"}
+    </button>
+  )}
 
     <button
       onClick={sendMessage}

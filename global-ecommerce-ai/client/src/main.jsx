@@ -11,12 +11,13 @@ import { store } from "./redux/store";
 
 import { BrowserRouter } from "react-router-dom";
 
-// Global Axios Request Interceptor to dynamically rewrite localhost:5000 in local networks
+// Global Axios Request Interceptor to dynamically rewrite localhost:5000 to frontend host (for Vite proxy)
 axios.interceptors.request.use(
   (config) => {
     if (config.url && config.url.includes("localhost:5000")) {
-      const backendHost = window.location.hostname;
-      config.url = config.url.replace("localhost", backendHost);
+      const frontendHost = window.location.host;
+      const protocol = window.location.protocol;
+      config.url = config.url.replace("http://localhost:5000", `${protocol}//${frontendHost}`);
     }
     return config;
   },
