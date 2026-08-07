@@ -1,8 +1,6 @@
 const Product = require("../models/Product");
-
-const RecommendationAnalytics = require(
-  "../models/recommendationAnalyticsModel"
-);
+const RecommendationAnalytics = require("../models/recommendationAnalyticsModel");
+const { getAIRecommendations } = require("../services/tensorflowRecommendation");
 
 const getRecommendations = async (
   req,
@@ -20,14 +18,7 @@ const getRecommendations = async (
       });
     }
 
-    const recommendations =
-      await Product.find({
-        category:
-          currentProduct.category,
-        _id: {
-          $ne: currentProduct._id,
-        },
-      }).limit(4);
+    const recommendations = await getAIRecommendations(currentProduct._id, 4);
 
     // =========================
     // TRACK RECOMMENDATIONS

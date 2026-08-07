@@ -121,7 +121,7 @@ const MyOrders = () => {
                 <div>
                   {/* TOTAL */}
                   <p style={{ fontSize: "18px", fontWeight: "700", color: "#111827" }}>
-                    ₹{order.totalPrice}
+                    ₹{(order.totalPrice || 0) + (order.deliveryCharge || 0) - (order.discount || 0)}
                   </p>
 
                   {/* PAYMENT */}

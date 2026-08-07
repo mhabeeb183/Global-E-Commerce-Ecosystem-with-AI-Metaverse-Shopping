@@ -43,7 +43,7 @@ const seedDatabase = async () => {
     const Scene = require("../models/Scene");
     const sceneCount = await Scene.countDocuments({});
     
-    if (productCount >= 20 && sceneCount >= 4) {
+    if (productCount >= 20 && sceneCount >= 9) {
       console.log("Database already seeded with enough products & scenes. Skipping seeder.");
       return;
     }
@@ -111,8 +111,8 @@ const seedDatabase = async () => {
         dynamicPrice: 49999,
         stock: 50,
         soldCount: 12,
-        images: ["https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=600&auto=format&fit=crop&q=60"],
-        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/DamagedHelmet/glTF-Binary/DamagedHelmet.glb",
+        images: ["/assets/unsplash-d337b6d320.jpg"],
+        arModelUrl: "/assets/DamagedHelmet.glb",
         user: vendor._id,
         averageRating: 4.8,
       },
@@ -126,7 +126,7 @@ const seedDatabase = async () => {
         dynamicPrice: 79999,
         stock: 20,
         soldCount: 5,
-        images: ["https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-ae40ccc12e.jpg"],
         user: vendor._id,
         averageRating: 4.5,
       },
@@ -140,7 +140,7 @@ const seedDatabase = async () => {
         dynamicPrice: 8999,
         stock: 120,
         soldCount: 45,
-        images: ["https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-3b82ff2851.jpg"],
         user: vendor._id,
         averageRating: 4.2,
       },
@@ -154,7 +154,7 @@ const seedDatabase = async () => {
         dynamicPrice: 24999,
         stock: 80,
         soldCount: 30,
-        images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-08729ae24d.jpg"],
         user: vendor._id,
         averageRating: 4.7,
       },
@@ -168,7 +168,7 @@ const seedDatabase = async () => {
         dynamicPrice: 299999,
         stock: 15,
         soldCount: 3,
-        images: ["https://images.unsplash.com/photo-1608248597481-496100c8c836?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-608248597481-496100c8c836.jpg"],
         user: vendor._id,
         averageRating: 4.9,
       },
@@ -182,7 +182,7 @@ const seedDatabase = async () => {
         dynamicPrice: 44999,
         stock: 40,
         soldCount: 18,
-        images: ["https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-dded49329c.jpg"],
         user: vendor._id,
         averageRating: 4.8,
       },
@@ -196,7 +196,7 @@ const seedDatabase = async () => {
         dynamicPrice: 32999,
         stock: 60,
         soldCount: 22,
-        images: ["https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-86cb20ac25.jpg"],
         user: vendor._id,
         averageRating: 4.6,
       },
@@ -210,7 +210,7 @@ const seedDatabase = async () => {
         dynamicPrice: 14999,
         stock: 100,
         soldCount: 35,
-        images: ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-2e686c87e2.jpg"],
         user: vendor._id,
         averageRating: 4.4,
       },
@@ -224,8 +224,8 @@ const seedDatabase = async () => {
         dynamicPrice: 24999,
         stock: 25,
         soldCount: 8,
-        images: ["https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=600&auto=format&fit=crop&q=60"],
-        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/SheenChair/glTF-Binary/SheenChair.glb",
+        images: ["/assets/unsplash-657f135d1c.jpg"],
+        arModelUrl: "/assets/SheenChair.glb",
         user: vendor._id,
         averageRating: 4.3,
       },
@@ -239,7 +239,7 @@ const seedDatabase = async () => {
         dynamicPrice: 4999,
         stock: 150,
         soldCount: 88,
-        images: ["https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-5506dddc3e.jpg"],
         user: vendor._id,
         averageRating: 4.5,
       },
@@ -253,7 +253,7 @@ const seedDatabase = async () => {
         dynamicPrice: 9999,
         stock: 75,
         soldCount: 29,
-        images: ["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-93a6b222b5.jpg"],
         user: vendor._id,
         averageRating: 4.6,
       },
@@ -267,7 +267,7 @@ const seedDatabase = async () => {
         dynamicPrice: 4499,
         stock: 200,
         soldCount: 110,
-        images: ["https://images.unsplash.com/photo-1543512214-318c7553f230?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-2fb71a29bd.jpg"],
         user: vendor._id,
         averageRating: 4.1,
       },
@@ -281,7 +281,7 @@ const seedDatabase = async () => {
         dynamicPrice: 34999,
         stock: 45,
         soldCount: 14,
-        images: ["https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-3f9c72fb83.jpg"],
         user: vendor._id,
         averageRating: 4.7,
       },
@@ -295,7 +295,7 @@ const seedDatabase = async () => {
         dynamicPrice: 69999,
         stock: 30,
         soldCount: 7,
-        images: ["https://images.unsplash.com/photo-1496181130204-755241524eab?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-1496181130204-755241524eab.jpg"],
         user: vendor._id,
         averageRating: 4.5,
       },
@@ -309,8 +309,8 @@ const seedDatabase = async () => {
         dynamicPrice: 14999,
         stock: 30,
         soldCount: 10,
-        images: ["https://images.unsplash.com/photo-1560942485-b2a11cc13456?w=600&auto=format&fit=crop&q=60"],
-        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/ToyCar/glTF-Binary/ToyCar.glb",
+        images: ["/assets/unsplash-be0d6e6447.jpg"],
+        arModelUrl: "/assets/ToyCar.glb",
         user: vendor._id,
         averageRating: 4.9,
       },
@@ -324,8 +324,8 @@ const seedDatabase = async () => {
         dynamicPrice: 3999,
         stock: 45,
         soldCount: 15,
-        images: ["https://images.unsplash.com/photo-1531303435785-3853ba035cda?w=600&auto=format&fit=crop&q=60"],
-        arModelUrl: "https://modelviewer.dev/shared-assets/models/RobotExpressive.glb",
+        images: ["/assets/unsplash-07a83226f3.jpg"],
+        arModelUrl: "/assets/RobotExpressive.glb",
         user: vendor._id,
         averageRating: 4.4,
       },
@@ -339,7 +339,7 @@ const seedDatabase = async () => {
         dynamicPrice: 1999,
         stock: 60,
         soldCount: 25,
-        images: ["https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-3d7571e920.jpg"],
         user: vendor._id,
         averageRating: 4.6,
       },
@@ -353,7 +353,7 @@ const seedDatabase = async () => {
         dynamicPrice: 2999,
         stock: 80,
         soldCount: 34,
-        images: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-d7c6f67cbf.jpg"],
         user: vendor._id,
         averageRating: 4.5,
       },
@@ -367,8 +367,8 @@ const seedDatabase = async () => {
         dynamicPrice: 7999,
         stock: 25,
         soldCount: 8,
-        images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=60"],
-        arModelUrl: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb",
+        images: ["/assets/unsplash-60a828fce4.jpg"],
+        arModelUrl: "/assets/MaterialsVariantsShoe.glb",
         user: vendor._id,
         averageRating: 4.7,
       },
@@ -382,7 +382,7 @@ const seedDatabase = async () => {
         dynamicPrice: 3499,
         stock: 65,
         soldCount: 42,
-        images: ["https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=60"],
+        images: ["/assets/unsplash-2f03b3a736.jpg"],
         user: vendor._id,
         averageRating: 4.3,
       }
@@ -456,7 +456,7 @@ const seedDatabase = async () => {
         { user: admin._id, amount: 170000, timestamp: new Date(Date.now() - 1800000) },
         { user: customer._id, amount: 175000, timestamp: new Date(Date.now() - 300000) }
       ],
-      images: ["https://images.unsplash.com/photo-1550985616-10810253b84d?w=600&auto=format&fit=crop&q=60"]
+      images: ["/assets/unsplash-6d9b38fc1e.jpg"]
     });
 
     await Auction.create({
@@ -471,7 +471,7 @@ const seedDatabase = async () => {
       endTime: new Date(nextWeek.getTime() + 86400000 * 2),
       status: "upcoming",
       bids: [],
-      images: ["https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=60"]
+      images: ["/assets/unsplash-8a8eb9e094.jpg"]
     });
 
     console.log("Seeded Auctions successfully.");
@@ -496,152 +496,225 @@ const seedDatabase = async () => {
     // 6. Seed Scenes & Hotspots (VR Virtual Store Module)
     const Hotspot = require("../models/Hotspot");
     
-    const countScenes = await Scene.countDocuments({});
-    if (countScenes === 0) {
-      console.log("Seeding VR virtual showroom departments and passages...");
-      
-      const lobbyScene = await Scene.create({
-        name: "Lobby",
-        panoramaUrl: "/assets/lobby_360.jpg",
-        connections: []
-      });
+    console.log("Re-seeding VR virtual showroom departments...");
+    await Scene.deleteMany({});
+    await Hotspot.deleteMany({});
 
-      const kidsScene = await Scene.create({
-        name: "Kids Section",
-        panoramaUrl: "/assets/toys_360.jpg",
-        connections: []
-      });
+    const lobbyScene = await Scene.create({
+      name: "Lobby",
+      panoramaUrl: "/assets/lobby_360.jpg",
+      connections: []
+    });
 
-      const techScene = await Scene.create({
-        name: "Technology Center",
-        panoramaUrl: "/assets/tech_360.jpg",
-        connections: []
-      });
+    const kidsScene = await Scene.create({
+      name: "Kids Section",
+      panoramaUrl: "/assets/toys_360.jpg",
+      connections: []
+    });
 
-      const fashionScene = await Scene.create({
-        name: "Fashion Boutique",
-        panoramaUrl: "/assets/fashion_360.jpg",
-        connections: []
-      });
+    const mensScene = await Scene.create({
+      name: "Men's Fashion",
+      panoramaUrl: "/assets/fashion_360.jpg",
+      connections: []
+    });
 
-      // Symmetrically connect Lobby with other scenes
-      lobbyScene.connections = [kidsScene._id, techScene._id, fashionScene._id];
-      await lobbyScene.save();
+    const womensScene = await Scene.create({
+      name: "Women's Fashion",
+      panoramaUrl: "/assets/fashion_360.jpg",
+      connections: []
+    });
 
-      kidsScene.connections = [lobbyScene._id];
-      await kidsScene.save();
+    const electronicsScene = await Scene.create({
+      name: "Electronics Center",
+      panoramaUrl: "/assets/tech_360.jpg",
+      connections: []
+    });
 
-      techScene.connections = [lobbyScene._id];
-      await techScene.save();
+    const groceryScene = await Scene.create({
+      name: "Grocery Mart",
+      panoramaUrl: "/assets/lobby_360.jpg",
+      connections: []
+    });
 
-      fashionScene.connections = [lobbyScene._id];
-      await fashionScene.save();
+    const furnitureScene = await Scene.create({
+      name: "Furniture Lounge",
+      panoramaUrl: "/assets/lobby_360.jpg",
+      connections: []
+    });
 
-      // Seed Teleport Hotspots
-      // Lobby Teleports
+    const beautyScene = await Scene.create({
+      name: "Beauty & Cosmetics",
+      panoramaUrl: "/assets/fashion_360.jpg",
+      connections: []
+    });
+
+    const sportsScene = await Scene.create({
+      name: "Sports & Outdoors",
+      panoramaUrl: "/assets/tech_360.jpg",
+      connections: []
+    });
+
+    // Connect Lobby symmetrically with all 8 departments
+    const departments = [
+      kidsScene,
+      mensScene,
+      womensScene,
+      electronicsScene,
+      groceryScene,
+      furnitureScene,
+      beautyScene,
+      sportsScene
+    ];
+
+    lobbyScene.connections = departments.map(d => d._id);
+    await lobbyScene.save();
+
+    for (const dep of departments) {
+      dep.connections = [lobbyScene._id];
+      await dep.save();
+    }
+
+    // Seed Teleport Portals inside the Lobby (8 portals, symmetrically positioned)
+    const portalData = [
+      { target: kidsScene, label: "Kids Department", yaw: 0.0 },
+      { target: mensScene, label: "Men's Fashion", yaw: 0.78 },
+      { target: womensScene, label: "Women's Fashion", yaw: 1.57 },
+      { target: electronicsScene, label: "Electronics Center", yaw: 2.35 },
+      { target: groceryScene, label: "Grocery Mart", yaw: 3.14 },
+      { target: furnitureScene, label: "Furniture Lounge", yaw: 3.92 },
+      { target: beautyScene, label: "Beauty & Cosmetics", yaw: 4.71 },
+      { target: sportsScene, label: "Sports & Outdoors", yaw: 5.5 }
+    ];
+
+    for (const p of portalData) {
       await Hotspot.create({
         sceneId: lobbyScene._id,
-        targetSceneId: kidsScene._id,
-        pitch: -0.22,
-        yaw: 2.1,
+        targetSceneId: p.target._id,
+        pitch: -0.15,
+        yaw: p.yaw,
         type: "teleport",
-        label: "Kids Department"
-      });
-      await Hotspot.create({
-        sceneId: lobbyScene._id,
-        targetSceneId: techScene._id,
-        pitch: -0.25,
-        yaw: 0.0,
-        type: "teleport",
-        label: "Technology Center"
-      });
-      await Hotspot.create({
-        sceneId: lobbyScene._id,
-        targetSceneId: fashionScene._id,
-        pitch: -0.23,
-        yaw: 4.2,
-        type: "teleport",
-        label: "Fashion Boutique"
+        label: p.label
       });
 
-      // Room-Back teleports
+      // Add return portal from each department back to Lobby
+      await Hotspot.create({
+        sceneId: p.target._id,
+        targetSceneId: lobbyScene._id,
+        pitch: -0.3,
+        yaw: Math.PI,
+        type: "teleport",
+        label: "Back to Lobby"
+      });
+    }
+
+    // Seed Product Hotspots in relevant departments
+    // Kids
+    if (products[14]) {
       await Hotspot.create({
         sceneId: kidsScene._id,
-        targetSceneId: lobbyScene._id,
-        pitch: -0.3,
-        yaw: Math.PI,
-        type: "teleport",
-        label: "Back to Lobby"
-      });
-      await Hotspot.create({
-        sceneId: techScene._id,
-        targetSceneId: lobbyScene._id,
-        pitch: -0.3,
-        yaw: Math.PI,
-        type: "teleport",
-        label: "Back to Lobby"
-      });
-      await Hotspot.create({
-        sceneId: fashionScene._id,
-        targetSceneId: lobbyScene._id,
-        pitch: -0.3,
-        yaw: Math.PI,
-        type: "teleport",
-        label: "Back to Lobby"
-      });
-
-      // Product Hotspots
-      // Kids Section products (Lego Millennium Falcon & RC Robot)
-      await Hotspot.create({
-        sceneId: kidsScene._id,
-        productId: products[14]._id, // Lego Star Wars
+        productId: products[14]._id,
         pitch: 0.1,
         yaw: 0.5,
         type: "product"
       });
+    }
+    if (products[15]) {
       await Hotspot.create({
         sceneId: kidsScene._id,
-        productId: products[15]._id, // Robot
+        productId: products[15]._id,
         pitch: -0.05,
         yaw: 1.2,
         type: "product"
       });
+    }
 
-      // Tech Section products (Meta Quest 3 & Vision Pro)
+    // Men
+    if (products[17]) {
       await Hotspot.create({
-        sceneId: techScene._id,
-        productId: products[0]._id, // Meta Quest
+        sceneId: mensScene._id,
+        productId: products[17]._id,
+        pitch: 0.1,
+        yaw: 0.8,
+        type: "product"
+      });
+    }
+
+    // Women
+    if (products[18]) {
+      await Hotspot.create({
+        sceneId: womensScene._id,
+        productId: products[18]._id,
+        pitch: -0.05,
+        yaw: 1.6,
+        type: "product"
+      });
+    }
+
+    // Electronics
+    if (products[0]) {
+      await Hotspot.create({
+        sceneId: electronicsScene._id,
+        productId: products[0]._id,
         pitch: -0.08,
         yaw: 5.5,
         type: "product"
       });
+    }
+    if (products[4]) {
       await Hotspot.create({
-        sceneId: techScene._id,
-        productId: products[4]._id, // Vision Pro
+        sceneId: electronicsScene._id,
+        productId: products[4]._id,
         pitch: 0.05,
         yaw: 0.7,
         type: "product"
       });
-
-      // Fashion Section products ( hoodie & sneakers)
-      await Hotspot.create({
-        sceneId: fashionScene._id,
-        productId: products[17]._id, // hoodie
-        pitch: 0.12,
-        yaw: 4.8,
-        type: "product"
-      });
-      await Hotspot.create({
-        sceneId: fashionScene._id,
-        productId: products[18]._id, // sneakers
-        pitch: -0.06,
-        yaw: 0.4,
-        type: "product"
-      });
-
-      console.log("Seeded VR Rooms and hotspots successfully.");
     }
 
+    // Grocery
+    if (products[10]) {
+      await Hotspot.create({
+        sceneId: groceryScene._id,
+        productId: products[10]._id,
+        pitch: -0.1,
+        yaw: 2.1,
+        type: "product"
+      });
+    }
+
+    // Furniture
+    if (products[8]) {
+      await Hotspot.create({
+        sceneId: furnitureScene._id,
+        productId: products[8]._id,
+        pitch: -0.12,
+        yaw: 3.4,
+        type: "product"
+      });
+    }
+
+    // Beauty
+    if (products[3]) {
+      await Hotspot.create({
+        sceneId: beautyScene._id,
+        productId: products[3]._id,
+        pitch: 0.05,
+        yaw: 4.2,
+        type: "product"
+      });
+    }
+
+    // Sports
+    if (products[7]) {
+      await Hotspot.create({
+        sceneId: sportsScene._id,
+        productId: products[7]._id,
+        pitch: -0.06,
+        yaw: 5.1,
+        type: "product"
+      });
+    }
+
+    console.log("Seeded VR Rooms and hotspots successfully.");
     console.log("Seeding Database Completed!");
   } catch (error) {
     console.error("Database Seeding Failed:", error.message);

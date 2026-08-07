@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Billboard, Text } from '@react-three/drei';
+import { Billboard, Html } from '@react-three/drei';
 import { DoubleSide } from 'three';
 
 const playSound = (type) => {
@@ -126,38 +126,20 @@ const TeleportRing = ({ pitch, yaw, label, onClick, themeColor = "#10b981" }) =>
           <circleGeometry args={[0.58]} />
         </mesh>
 
-        {/* Floor Teleport Label Billboard */}
-        <Billboard position={[0, 0.7, 0]}>
-          <Text
-            fontSize={0.15}
-            color="white"
-            anchorX="center"
-            anchorY="middle"
-            outlineWidth={0.03}
-            outlineColor="black"
-            fontWeight="bold"
-          >
-            {label}
-          </Text>
-          <Text
-            position={[0, -0.15, 0]}
-            fontSize={0.09}
-            color={themeColor}
-            anchorX="center"
-            anchorY="middle"
-            outlineWidth={0.015}
-            outlineColor="black"
-          >
-            ⚡ Teleport
-          </Text>
-        </Billboard>
+        {/* Floor Teleport Label Html */}
+        <Html position={[0, 0.7, 0]} center distanceFactor={8}>
+          <div className="bg-zinc-950/95 border border-zinc-800 text-white px-3.5 py-1.5 rounded-xl shadow-2xl flex flex-col items-center gap-0.5 font-sans pointer-events-none select-none">
+            <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">{label}</span>
+            <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">⚡ Teleport</span>
+          </div>
+        </Html>
       </group>
     );
   }
 
   // Floating teleport ring in space
   return (
-    <Billboard position={position}>
+    <group position={position}>
       <group
         onClick={(e) => {
           e.stopPropagation();
@@ -178,20 +160,14 @@ const TeleportRing = ({ pitch, yaw, label, onClick, themeColor = "#10b981" }) =>
         </mesh>
         
         {/* Label */}
-        <Text
-          position={[0, 0.5, 0]}
-          fontSize={0.16}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.03}
-          outlineColor="black"
-          fontWeight="bold"
-        >
-          {label}
-        </Text>
+        <Html position={[0, 0.5, 0]} center distanceFactor={8}>
+          <div className="bg-zinc-950/95 border border-zinc-800 text-white px-3.5 py-1.5 rounded-xl shadow-2xl flex flex-col items-center gap-0.5 font-sans pointer-events-none select-none">
+            <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">{label}</span>
+            <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">⚡ Teleport</span>
+          </div>
+        </Html>
       </group>
-    </Billboard>
+    </group>
   );
 };
 

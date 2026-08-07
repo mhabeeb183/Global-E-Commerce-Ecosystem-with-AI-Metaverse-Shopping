@@ -133,7 +133,7 @@ const VendorOrders = () => {
                     Order ID: <span style={{ fontFamily: "monospace" }}>{order._id}</span>
                   </p>
                   <p style={{ fontSize: "18px", fontWeight: "800", color: "#111827", marginTop: "4px" }}>
-                    ₹{order.totalPrice}
+                    ₹{(order.totalPrice || 0) + (order.deliveryCharge || 0) - (order.discount || 0)}
                   </p>
                   <p style={{ fontSize: "13px", color: "#6b7280" }}>
                     {new Date(order.createdAt).toLocaleDateString()}

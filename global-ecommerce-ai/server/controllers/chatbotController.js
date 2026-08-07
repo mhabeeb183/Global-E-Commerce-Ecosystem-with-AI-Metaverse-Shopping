@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken");
 const Product = require("../models/Product");
 const Order = require("../models/Order");
 const ChatLog = require("../models/ChatLog");
@@ -373,6 +374,17 @@ if (
           "top",
           "recommend",
           "suggest",
+          "what",
+          "where",
+          "when",
+          "which",
+          "who",
+          "product",
+          "products",
+          "item",
+          "items",
+          "trending",
+          "trend",
         ].includes(word)
       ) {
         searchConditions.push({
@@ -440,6 +452,15 @@ if (
         .limit(10);
     }
 
+    let fallbackProducts = [];
+    if (products.length === 0) {
+      try {
+        fallbackProducts = await Product.find({}).limit(5);
+      } catch (dbErr) {
+        console.error("Failed to fetch fallback products:", dbErr.message);
+      }
+    }
+
     let reply = "";
     if (process.env.GROQ_API_KEY) {
       try {
@@ -450,7 +471,7 @@ if (
             "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
           },
           body: JSON.stringify({
-            model: "llama3-8b-8192",
+            model: "llama-3.1-8b-instant",
             messages: [
               {
                 role: "system",
@@ -458,7 +479,7 @@ if (
               },
               {
                 role: "user",
-                content: `User message: "${message}". Products found in database: ${JSON.stringify(products.map(p => ({ name: p.name, price: p.price, brand: p.brand, rating: p.rating })))}`
+                content: `User message: "${message}". Products matching search terms: ${JSON.stringify(products.map(p => ({ name: p.name, price: p.price, brand: p.brand, rating: p.rating })))}.${products.length === 0 ? ` (Note: No products directly matched the search terms, but here are some popular products currently available in our store: ${JSON.stringify(fallbackProducts.map(p => ({ name: p.name, price: p.price, brand: p.brand, rating: p.rating })))})` : ""}`
               }
             ]
           })
@@ -468,7 +489,8 @@ if (
           const groqData = await groqResponse.json();
           reply = groqData.choices?.[0]?.message?.content || "";
         } else {
-          console.error("Groq API error response status:", groqResponse.status);
+          const errorBody = await groqResponse.text();
+          console.error("Groq API error response status:", groqResponse.status, "Error:", errorBody);
         }
       } catch (err) {
         console.error("Groq API Call Error:", err);
@@ -482,7 +504,17 @@ if (
     }
 
     // Save Chat to Database
-    const finalUserId = req.body.userId || req.user?._id;
+    let finalUserId = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      try {
+        const token = req.headers.authorization.split(" ")[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        finalUserId = decoded.id;
+      } catch (err) {
+        console.error("JWT verification failed in chatbotSearch:", err.message);
+      }
+    }
+
     if (finalUserId) {
       try {
         let chatLog = await ChatLog.findOne({ user: finalUserId });

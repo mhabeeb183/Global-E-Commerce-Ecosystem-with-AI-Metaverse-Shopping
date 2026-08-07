@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import SpeechRecognition, {
   useSpeechRecognition,
@@ -28,12 +29,25 @@ console.log("Transcript =", transcript);
     },
   ]);
 
+  const { userInfo } = useSelector((state) => state.auth);
+
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-        const token = userInfo?.token;
-        if (open && token) {
+    const syncChatHistory = async () => {
+      const token = userInfo?.token;
+      if (!token) {
+        // Clear chat to default welcome message for guests/logged-out
+        setMessages([
+          {
+            sender: "bot",
+            text: "Hi 👋 How can I help you shop today?",
+          },
+        ]);
+        return;
+      }
+
+      // If logged in, fetch history only if the widget is open
+      if (open) {
+        try {
           const { data } = await axios.get(
             "http://localhost:5000/api/chatbot/history",
             {
@@ -48,14 +62,31 @@ console.log("Transcript =", transcript);
               text: m.text,
             }));
             setMessages(formatted);
+          } else {
+            // No history on the server for this user
+            setMessages([
+              {
+                sender: "bot",
+                text: "Hi 👋 How can I help you shop today?",
+              },
+            ]);
           }
+        } catch (error) {
+          console.error("Failed to fetch chat history", error);
         }
-      } catch (error) {
-        console.error("Failed to fetch chat history", error);
+      } else {
+        // Logged in but widget is closed, reset to default welcome message
+        setMessages([
+          {
+            sender: "bot",
+            text: "Hi 👋 How can I help you shop today?",
+          },
+        ]);
       }
     };
-    fetchHistory();
-  }, [open]);
+
+    syncChatHistory();
+  }, [open, userInfo]);
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -69,9 +100,7 @@ console.log("Transcript =", transcript);
 
 
     try {
-      const userInfo = JSON.parse(
-        localStorage.getItem("userInfo")
-      );
+      const token = userInfo?.token;
       
       // Find the last bot message that has products to provide context
       const lastBotMsgWithProducts = [...messages]
@@ -81,13 +110,18 @@ console.log("Transcript =", transcript);
         ? lastBotMsgWithProducts.products.map((p) => p._id) 
         : [];
 
+      const headers = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const { data } = await axios.post(
         "http://localhost:5000/api/chatbot",
         {
           message,
-          userId: userInfo?._id || userInfo?.user?._id,
           lastProductIds,
-        }
+        },
+        { headers }
       );
 
       const botMessage = {

@@ -66,6 +66,7 @@ const LiveStreamPage = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", scheduledAt: "" });
+  const [isMuted, setIsMuted] = useState(true);
 
   const videoRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -266,11 +267,15 @@ const LiveStreamPage = () => {
           const pc = new RTCPeerConnection(iceServersRef.current);
           peerConnectionRef.current = pc;
 
-          // When host's video/audio tracks arrive, show in video element
           pc.ontrack = ({ streams }) => {
             if (videoRef.current && streams[0]) {
-              videoRef.current.srcObject = streams[0];
-              setIsStreaming(true);
+              if (videoRef.current.srcObject !== streams[0]) {
+                videoRef.current.srcObject = streams[0];
+                setIsStreaming(true);
+                videoRef.current.play().catch((err) => {
+                  console.warn("Autoplay play() was prevented:", err);
+                });
+              }
             }
           };
 
@@ -414,7 +419,11 @@ const LiveStreamPage = () => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        setIsMuted(true); // Host is always muted to avoid loopback feedback
         setIsStreaming(true);
+        videoRef.current.play().catch((err) => {
+          console.warn("Host play() was prevented:", err);
+        });
       }
 
       await axios.put(`${API}/${currentStream._id}/start`, {}, {
@@ -627,9 +636,34 @@ const LiveStreamPage = () => {
             ref={videoRef}
             autoPlay
             playsInline
-            muted={!!isHost}
+            muted={isHost ? true : isMuted}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
+          {isStreaming && !isHost && (
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              style={{
+                position: "absolute",
+                bottom: "8px",
+                left: "8px",
+                backgroundColor: "rgba(0, 0, 0, 0.75)",
+                color: "white",
+                border: "none",
+                borderRadius: "20px",
+                padding: "6px 12px",
+                fontSize: "11px",
+                fontWeight: "600",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                zIndex: 20,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+              }}
+            >
+              <span>{isMuted ? "🔇" : "🔊"}</span> {isMuted ? "Tap to Unmute" : "Audio Active"}
+            </button>
+          )}
           {!isStreaming && (
             <div style={{ position: "absolute", color: "#fff", textAlign: "center" }}>
               <p style={{ fontSize: "24px", margin: 0 }}>📺</p>
@@ -961,9 +995,34 @@ const LiveStreamPage = () => {
               ref={videoRef}
               autoPlay
               playsInline
-              muted={!!isHost}
+              muted={isHost ? true : isMuted}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
+            {isStreaming && !isHost && (
+              <button
+                onClick={() => setIsMuted(!isMuted)}
+                style={{
+                  position: "absolute",
+                  bottom: "12px",
+                  left: "12px",
+                  backgroundColor: "rgba(0, 0, 0, 0.75)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "8px 16px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  zIndex: 20,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                }}
+              >
+                <span>{isMuted ? "🔇" : "🔊"}</span> {isMuted ? "Tap to Unmute" : "Audio Active"}
+              </button>
+            )}
             {!isStreaming && (
               <div style={{ position: "absolute", color: "#fff", textAlign: "center" }}>
                 <p style={{ fontSize: "48px" }}>📺</p>

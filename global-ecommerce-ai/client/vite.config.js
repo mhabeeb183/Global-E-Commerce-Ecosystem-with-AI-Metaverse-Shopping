@@ -38,6 +38,8 @@ const pathTraversalShield = () => ({
   }
 });
 
+let currentNonce = "";
+
 const securityHeadersMiddleware = () => ({
   name: "security-headers-middleware",
   configureServer(server) {
@@ -48,7 +50,10 @@ const securityHeadersMiddleware = () => ({
         const backendUrl = `http://${hostname}:5000`;
         const wsBackendUrl = `ws://${hostname}:5000`;
 
-        const csp = `default-src 'self' ${backendUrl} https://checkout.razorpay.com; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://checkout.razorpay.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://placehold.co https://via.placeholder.com https://modelviewer.dev https://api.qrserver.com; connect-src 'self' blob: ${backendUrl} ${wsBackendUrl} https://api.razorpay.com https://modelviewer.dev https://res.cloudinary.com; frame-src 'self' https://api.razorpay.com; font-src 'self' data:; frame-ancestors 'self'; form-action 'self';`;
+        // Generate a random nonce and store in module scope
+        currentNonce = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+        const csp = `default-src 'self' ${backendUrl} https://checkout.razorpay.com; script-src 'self' blob: 'nonce-${currentNonce}' 'wasm-unsafe-eval' https://checkout.razorpay.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://placehold.co https://via.placeholder.com https://modelviewer.dev https://api.qrserver.com; connect-src 'self' blob: ${backendUrl} ${wsBackendUrl} https://api.razorpay.com https://modelviewer.dev https://res.cloudinary.com; frame-src 'self' https://api.razorpay.com; font-src 'self' data:; frame-ancestors 'self'; form-action 'self';`;
 
         res.setHeader("Content-Security-Policy", csp);
         res.setHeader("X-Frame-Options", "SAMEORIGIN");
@@ -59,6 +64,38 @@ const securityHeadersMiddleware = () => ({
       }
       next();
     });
+  },
+  transformIndexHtml(html) {
+    if (!currentNonce) return html;
+
+    // Inject meta tag for Vite runtime CSS/JS injection
+    let transformed = html.replace(
+      /<head>/i,
+      `<head>\n    <meta property="csp-nonce" content="${currentNonce}" nonce="${currentNonce}" />`
+    );
+
+    // Add the nonce to all script tags (unless they already have one)
+    transformed = transformed.replace(/<script([^>]*)>/gi, (match, p1) => {
+      if (p1.includes("nonce=")) return match;
+      return `<script${p1} nonce="${currentNonce}">`;
+    });
+
+    // Add the nonce to all style tags (unless they already have one)
+    transformed = transformed.replace(/<style([^>]*)>/gi, (match, p1) => {
+      if (p1.includes("nonce=")) return match;
+      return `<style${p1} nonce="${currentNonce}">`;
+    });
+
+    // Add the nonce to link tags that are stylesheets
+    transformed = transformed.replace(/<link([^>]*)>/gi, (match, p1) => {
+      if (p1.includes("nonce=")) return match;
+      if (p1.includes('rel="stylesheet"') || p1.includes("rel='stylesheet'")) {
+        return `<link${p1} nonce="${currentNonce}">`;
+      }
+      return match;
+    });
+
+    return transformed;
   }
 });
 

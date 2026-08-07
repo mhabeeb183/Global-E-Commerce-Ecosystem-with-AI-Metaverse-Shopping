@@ -90,17 +90,23 @@ const hotspotRoutes = require("./routes/hotspotRoutes");
 const app = express();
 app.disable("x-powered-by");
 
+// Remove the Server header to prevent version/server information leakage
+app.use((req, res, next) => {
+  res.removeHeader("Server");
+  next();
+});
+
 // Global response interceptor to mask internal errors and sanitize CastErrors
 app.use((req, res, next) => {
   const originalJson = res.json;
   res.json = function (obj) {
-    if (res.statusCode === 500) {
-      console.error(`[500 Error Intercepted on ${req.method} ${req.url}]:`, obj);
-      return originalJson.call(this, { message: "Internal Server Error" });
-    }
     if (obj && obj.message && (obj.message.includes("Cast to ObjectId") || obj.message.includes("ObjectId failed"))) {
       res.status(400);
       return originalJson.call(this, { message: "Invalid ID format" });
+    }
+    if (res.statusCode === 500) {
+      console.error(`[500 Error Intercepted on ${req.method} ${req.url}]:`, obj);
+      return originalJson.call(this, { message: "Internal Server Error" });
     }
     return originalJson.call(this, obj);
   };
@@ -110,7 +116,7 @@ app.use((req, res, next) => {
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: process.env.NODE_ENV === "production" ? 100 : 10000,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -132,17 +138,15 @@ app.use(
       useDefaults: true,
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
         imgSrc: [
           "'self'",
           "data:",
           "blob:",
           "https://res.cloudinary.com",
-          "https://images.unsplash.com",
           "https://placehold.co",
           "https://via.placeholder.com",
-          "https://modelviewer.dev",
           "https://api.qrserver.com"
         ],
         connectSrc: [
@@ -151,7 +155,6 @@ app.use(
           "http://localhost:5173",
           "ws://localhost:5000",
           "https://api.razorpay.com",
-          "https://modelviewer.dev",
           "https://res.cloudinary.com",
           "wss://localhost:5000"
         ],
@@ -174,16 +177,14 @@ app.use(
   })
 );
 
-// HSTS (Production)
-if (process.env.NODE_ENV === "production") {
-  app.use(
-    helmet.hsts({
-      maxAge: 31536000,
-      includeSubDomains: true,
-      preload: true
-    })
-  );
-}
+// HSTS (Strict-Transport-Security)
+app.use(
+  helmet.hsts({
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  })
+);
 
 // CORS Config
 const clientOrigin = process.env.CLIENT_URL || "http://localhost:5173";
@@ -481,3 +482,4 @@ const startServer = async () => {
 };
 
 startServer();
+// Reload to apply new environment variables

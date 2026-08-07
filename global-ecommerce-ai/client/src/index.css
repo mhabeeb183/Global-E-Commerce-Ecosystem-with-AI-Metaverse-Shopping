@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+.hide {
+  display: none !important;
+}
+.custom-poster.hide {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

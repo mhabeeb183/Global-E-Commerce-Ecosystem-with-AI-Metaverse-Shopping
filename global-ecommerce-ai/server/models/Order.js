@@ -28,6 +28,16 @@ const orderSchema = new mongoose.Schema(
       default: 0,
     },
 
+    discount: {
+      type: Number,
+      default: 0,
+    },
+
+    deliveryCharge: {
+      type: Number,
+      default: 0,
+    },
+
     isPaid: {
       type: Boolean,
       default: false,
@@ -108,6 +118,18 @@ const orderSchema = new mongoose.Schema(
     refundAmount: {
       type: Number,
       default: 0,
+    },
+
+    shippingDetails: {
+      name: { type: String, required: false },
+      address: { type: String, required: false },
+      mobile: { type: String, required: false },
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["Razorpay", "Wallet", "COD"],
+      default: "Razorpay",
     },
   },
   {

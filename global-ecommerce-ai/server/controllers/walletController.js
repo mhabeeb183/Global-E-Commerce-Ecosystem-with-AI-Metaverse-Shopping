@@ -10,6 +10,8 @@ const getWallet = async (req, res) => {
 
     res.json({
       walletBalance: user.walletBalance,
+      isSubscribed: user.isSubscribed,
+      subscriptionExpiry: user.subscriptionExpiry,
     });
   } catch (error) {
     res.status(500).json({

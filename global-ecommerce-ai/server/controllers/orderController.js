@@ -31,8 +31,8 @@ const createOrder = async (req, res) => {
       couponCode,
       discount,
       affiliateCode,
-
-    
+      shippingDetails,
+      paymentMethod,
     } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -62,12 +62,20 @@ for (const item of orderItems) {
   }
 }
 
+    const dbUser = await User.findById(req.user._id);
+    const hasActiveSubscription = !!(dbUser && dbUser.isSubscribed && dbUser.subscriptionExpiry && new Date(dbUser.subscriptionExpiry) > new Date());
+    const deliveryCharge = hasActiveSubscription ? 0 : 70;
+
     const order = new Order({
       user: req.user._id,
 
       orderItems,
 
       totalPrice,
+
+      discount: discount || 0,
+
+      deliveryCharge,
 
       isPaid: isPaid || false,
 
@@ -76,6 +84,10 @@ for (const item of orderItems) {
       paidAt: isPaid
         ? Date.now()
         : null,
+
+      shippingDetails: shippingDetails || {},
+
+      paymentMethod: paymentMethod || "Razorpay",
 
       //
       // ORDER TRACKING

@@ -335,7 +335,12 @@ const shareAffiliateOnWhatsApp =
 
   {affiliateLink && (
     <div className="mt-4">
+      <label htmlFor="affiliate-link" className="sr-only">
+        Affiliate Link
+      </label>
       <input
+        id="affiliate-link"
+        name="affiliate-link"
         type="text"
         value={affiliateLink}
         readOnly
@@ -378,11 +383,13 @@ const shareAffiliateOnWhatsApp =
 
         <form onSubmit={submitReviewHandler}>
           <div className="mb-4">
-            <label className="block mb-2">
+            <label htmlFor="review-rating" className="block mb-2">
               Rating
             </label>
 
             <select
+              id="review-rating"
+              name="rating"
               value={rating}
               onChange={(e) =>
                 setRating(e.target.value)
@@ -408,11 +415,13 @@ const shareAffiliateOnWhatsApp =
           </div>
 
           <div className="mb-4">
-            <label className="block mb-2">
+            <label htmlFor="review-comment" className="block mb-2">
               Comment
             </label>
 
             <textarea
+              id="review-comment"
+              name="comment"
               rows="4"
               value={comment}
               onChange={(e) =>

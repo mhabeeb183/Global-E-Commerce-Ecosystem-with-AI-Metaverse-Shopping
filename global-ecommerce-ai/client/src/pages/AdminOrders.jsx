@@ -121,7 +121,7 @@ const AdminOrders = () => {
 
               <p>
                 <strong>Total:</strong> ₹
-                {order.totalPrice}
+                {(order.totalPrice || 0) + (order.deliveryCharge || 0) - (order.discount || 0)}
               </p>
 
               <p>

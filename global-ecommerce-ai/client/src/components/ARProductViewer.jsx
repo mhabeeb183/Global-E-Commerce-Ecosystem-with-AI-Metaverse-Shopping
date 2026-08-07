@@ -12,12 +12,9 @@ const ARProductViewer = ({ product }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [localIp, setLocalIp] = useState("localhost");
-  const [modelLoaded, setModelLoaded] = useState(false);
   const modelViewerRef = useRef(null);
-
-  useEffect(() => {
-    setModelLoaded(false);
-  }, [product?.arModelUrl]);
+  const [blobUrl, setBlobUrl] = useState("");
+  const [arSupported, setArSupported] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
@@ -25,7 +22,13 @@ const ARProductViewer = ({ product }) => {
     axios.get("http://localhost:5000/api/scenes/ip")
       .then(({ data }) => {
         if (data.ip) {
-          setLocalIp(data.ip);
+          try {
+            // Decode the base64 masked IP address
+            const decodedIp = atob(data.ip);
+            setLocalIp(decodedIp);
+          } catch (e) {
+            setLocalIp(data.ip);
+          }
         }
       })
       .catch((err) => {
@@ -34,44 +37,79 @@ const ARProductViewer = ({ product }) => {
   }, []);
 
   useEffect(() => {
-    const el = modelViewerRef.current;
-    if (!el) return;
-
-    // Check if the model is already loaded (e.g. from browser cache)
-    if (el.loaded) {
-      setModelLoaded(true);
+    if (!product?.arModelUrl) {
+      setBlobUrl("");
+      return;
     }
 
-    const handleLoad = () => {
-      setModelLoaded(true);
-    };
+    // If the URL already ends with .glb or .gltf, we don't need to wrap it in a Blob.
+    // This allows the browser to leverage native caching and stream the file.
+    const hasExtension = product.arModelUrl.toLowerCase().endsWith(".glb") || 
+                         product.arModelUrl.toLowerCase().endsWith(".gltf") ||
+                         product.arModelUrl.includes(".glb?") ||
+                         product.arModelUrl.includes(".gltf?");
 
-    const handleDismissed = () => {
-      setModelLoaded(true);
-    };
+    if (hasExtension) {
+      setBlobUrl(product.arModelUrl);
+      return;
+    }
 
-    // Polling backup to catch cases where custom element upgrades late
-    const checkInterval = setInterval(() => {
-      if (el.loaded) {
-        setModelLoaded(true);
-        clearInterval(checkInterval);
+    let active = true;
+    let createdUrl = "";
+
+    const fetchModel = async () => {
+      try {
+        const response = await fetch(product.arModelUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch 3D model: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+        
+        // Force correct MIME type for model-viewer to parse it as a GLB model
+        const glbBlob = new Blob([blob], { type: "model/gltf-binary" });
+        
+        if (active) {
+          createdUrl = URL.createObjectURL(glbBlob);
+          setBlobUrl(createdUrl);
+        }
+      } catch (err) {
+        console.error("Error loading GLB model via Blob fetch:", err);
       }
-    }, 100);
+    };
 
-    el.addEventListener("load", handleLoad);
-    el.addEventListener("poster-dismissed", handleDismissed);
+    fetchModel();
 
     return () => {
-      clearInterval(checkInterval);
-      el.removeEventListener("load", handleLoad);
-      el.removeEventListener("poster-dismissed", handleDismissed);
+      active = false;
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
+      }
     };
   }, [product?.arModelUrl]);
 
+
+  useEffect(() => {
+    const el = modelViewerRef.current;
+    if (!el) return;
+
+    try {
+      el.setAttribute("ar", "");
+      el.setAttribute("ar-modes", "webxr scene-viewer quick-look");
+      el.setAttribute("camera-controls", "");
+      el.setAttribute("auto-rotate", "");
+      el.setAttribute("shadow-intensity", "1");
+      el.setAttribute("environment-image", "neutral");
+      el.setAttribute("interaction-prompt", "none");
+      el.setAttribute("touch-action", "none");
+    } catch (e) {
+      console.error("Error setting model-viewer attributes:", e);
+    }
+  }, [blobUrl]);
+
   if (!isMounted) return null;
 
-  const modelUrl = product?.arModelUrl;
-  const posterUrl = product?.images?.[0] || "https://modelviewer.dev/shared-assets/models/Astronaut.png";
+  const modelUrl = blobUrl;
+  const posterUrl = product?.images?.[0] || "/assets/poster-astronaut.webp";
   
   // Get current page URL and replace localhost with the real PC IP for mobile scanning
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -82,6 +120,9 @@ const ARProductViewer = ({ product }) => {
     const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     
     if (isMobileDevice && modelViewerRef.current) {
+      const canActivate = modelViewerRef.current.canActivateAR;
+      console.log("canActivateAR status:", canActivate);
+      setArSupported(canActivate ? "AR Compatible: Yes" : "AR Compatible: No (Missing ARCore)");
       // Trigger native mobile AR core/AR kit session
       modelViewerRef.current.activateAR();
     } else {
@@ -116,29 +157,36 @@ const ARProductViewer = ({ product }) => {
             <model-viewer
               ref={modelViewerRef}
               src={modelUrl}
-              ios-src={modelUrl.replace(".glb", ".usdz")}
+              ios-src={product?.arModelUrl ? product.arModelUrl.replace(".glb", ".usdz") : ""}
               alt={product?.name || "A 3D model of the product"}
               shadow-intensity="1"
               environment-image="neutral"
-              camera-controls="true"
+              camera-controls=""
+              auto-rotate=""
               interaction-prompt="none"
-              touch-action="pan-y"
-              ar="true"
+              touch-action="none"
+              ar=""
               ar-modes="webxr scene-viewer quick-look"
               style={{ width: "100%", height: "100%", display: "block" }}
             >
-              {!modelLoaded && (
-                <div slot="poster" className="custom-poster">
-                  <img src={posterUrl} alt="Product Loading..." className="custom-poster-img" />
-                  <div className="loading-overlay">
-                    <div className="spinner"></div>
-                    <div className="loading-text">Loading 3D Model...</div>
-                  </div>
+              <div 
+                slot="poster" 
+                className="custom-poster absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#f5f7fa] to-[#c3cfe2] z-10 pointer-events-none transition-opacity duration-500" 
+                draggable="false"
+              >
+                <img 
+                  src={posterUrl} 
+                  alt="Product Loading..." 
+                  className="max-w-[70%] max-h-[70%] object-contain mb-5" 
+                  draggable="false" 
+                />
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-black/10 border-l-blue-600 rounded-full animate-spin"></div>
+                  <div className="text-xs text-slate-800 font-semibold tracking-wider">Loading 3D Model...</div>
                 </div>
-              )}
-              <div id="ar-prompt">
-                <img src="https://modelviewer.dev/shared-assets/icons/hand.png" alt="AR prompt" />
               </div>
+
+
             </model-viewer>
 
             {/* Unified AR Button (Visible on both desktop & mobile) */}
@@ -174,6 +222,22 @@ const ARProductViewer = ({ product }) => {
             >
               <span>🕶️</span> View in your space
             </button>
+            {arSupported && (
+              <div style={{
+                position: "absolute",
+                bottom: "70px",
+                right: "20px",
+                backgroundColor: "rgba(0,0,0,0.85)",
+                color: "white",
+                padding: "6px 10px",
+                borderRadius: "6px",
+                fontSize: "11px",
+                zIndex: 10,
+                pointerEvents: "none"
+              }}>
+                {arSupported}
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ textAlign: "center", padding: "20px" }}>
@@ -279,84 +343,7 @@ const ARProductViewer = ({ product }) => {
         </div>
       )}
 
-      <style>{`
-        model-viewer {
-          --poster-color: transparent;
-        }
-        .custom-poster {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-          z-index: 2;
-          transition: opacity 0.5s ease-out;
-        }
-        .custom-poster-img {
-          max-width: 70%;
-          max-height: 70%;
-          object-fit: contain;
-          margin-bottom: 20px;
-        }
-        .loading-overlay {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-        }
-        .spinner {
-          width: 32px;
-          height: 32px;
-          border: 4px solid rgba(0, 0, 0, 0.1);
-          border-left-color: #2563eb;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-        .loading-text {
-          font-size: 13px;
-          color: #1e293b;
-          font-weight: 600;
-          letter-spacing: 0.5px;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .custom-poster.hide {
-          display: none !important;
-          opacity: 0 !important;
-          pointer-events: none !important;
-        }
-        .hide {
-          display: none !important;
-        }
-        #ar-prompt {
-          position: absolute;
-          left: 50%;
-          bottom: 175px;
-          animation: notify 1s ease-in-out infinite alternate;
-          display: none;
-        }
-        model-viewer[ar-status="session-started"] > #ar-prompt {
-          display: block;
-        }
-        model-viewer > #ar-prompt > img {
-          animation: circle 4s linear infinite;
-        }
-        @keyframes notify {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-20px); }
-        }
-        @keyframes circle {
-          from { transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg); }
-          to   { transform: translateX(-50%) rotate(360deg) translateX(50px) rotate(-360deg); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
+      {/* Dynamic inline styles are avoided to comply with Content Security Policy */}
     </div>
   );
 };
