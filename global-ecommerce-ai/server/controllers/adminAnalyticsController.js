@@ -20,11 +20,11 @@ const getAdminAnalytics = async (req, res) => {
 
     // Order Status Counts
     const pendingOrders = orders.filter(
-      (order) => order.orderStatus === "Pending"
+      (order) => ["Order Placed", "Packed"].includes(order.orderStatus)
     ).length;
 
     const shippedOrders = orders.filter(
-      (order) => order.orderStatus === "Shipped"
+      (order) => ["Shipped", "Out For Delivery"].includes(order.orderStatus)
     ).length;
 
     const deliveredOrders = orders.filter(

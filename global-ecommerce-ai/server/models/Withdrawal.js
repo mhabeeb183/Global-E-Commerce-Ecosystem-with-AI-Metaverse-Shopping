@@ -13,6 +13,12 @@ const withdrawalSchema = new mongoose.Schema(
       required: true,
     },
 
+    vendorEarning: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "VendorEarning",
+      required: false,
+    },
+
     status: {
       type: String,
       enum: [

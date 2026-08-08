@@ -65,8 +65,15 @@ const useWalletBalance = async (
     }
 
     user.walletBalance -= Number(amount);
-
     await user.save();
+
+    // Credit Admin Wallet
+    const admin = await User.findOne({ role: "admin" });
+    if (admin) {
+      admin.walletBalance = (admin.walletBalance || 0) + Number(amount);
+      await admin.save();
+      console.log(`Wallet Payment: Credited Admin "${admin.name}" wallet with ₹${amount}`);
+    }
 
     res.json({
       walletBalance: user.walletBalance,

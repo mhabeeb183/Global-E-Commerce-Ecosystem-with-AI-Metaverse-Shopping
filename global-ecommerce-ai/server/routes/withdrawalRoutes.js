@@ -8,6 +8,7 @@ const {
   getAllWithdrawals,
   approveWithdrawal,
   rejectWithdrawal,
+  getDeliveredProductsForWithdrawal,
 } = require("../controllers/withdrawalController");
 
 const {
@@ -19,6 +20,12 @@ router.post(
   "/request",
   protect,
   requestWithdrawal
+);
+
+router.get(
+  "/delivered-products",
+  protect,
+  getDeliveredProductsForWithdrawal
 );
 
 router.get(

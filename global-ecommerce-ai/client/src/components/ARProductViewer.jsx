@@ -13,8 +13,19 @@ const ARProductViewer = ({ product }) => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [localIp, setLocalIp] = useState("localhost");
   const modelViewerRef = useRef(null);
-  const [blobUrl, setBlobUrl] = useState("");
-  const [arSupported, setArSupported] = useState("");
+
+  const isMobileDevice = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  const modelUrl = product?.arModelUrl
+    ? (product.arModelUrl.toLowerCase().endsWith(".glb") ||
+       product.arModelUrl.toLowerCase().endsWith(".gltf") ||
+       product.arModelUrl.includes(".glb?") ||
+       product.arModelUrl.includes(".gltf?")
+        ? product.arModelUrl
+        : (product.arModelUrl.includes("?") 
+           ? `${product.arModelUrl}&ext=.glb` 
+           : `${product.arModelUrl}?ext=.glb`))
+    : "";
 
   useEffect(() => {
     setIsMounted(true);
@@ -36,57 +47,6 @@ const ARProductViewer = ({ product }) => {
       });
   }, []);
 
-  useEffect(() => {
-    if (!product?.arModelUrl) {
-      setBlobUrl("");
-      return;
-    }
-
-    // If the URL already ends with .glb or .gltf, we don't need to wrap it in a Blob.
-    // This allows the browser to leverage native caching and stream the file.
-    const hasExtension = product.arModelUrl.toLowerCase().endsWith(".glb") || 
-                         product.arModelUrl.toLowerCase().endsWith(".gltf") ||
-                         product.arModelUrl.includes(".glb?") ||
-                         product.arModelUrl.includes(".gltf?");
-
-    if (hasExtension) {
-      setBlobUrl(product.arModelUrl);
-      return;
-    }
-
-    let active = true;
-    let createdUrl = "";
-
-    const fetchModel = async () => {
-      try {
-        const response = await fetch(product.arModelUrl);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch 3D model: ${response.statusText}`);
-        }
-        const blob = await response.blob();
-        
-        // Force correct MIME type for model-viewer to parse it as a GLB model
-        const glbBlob = new Blob([blob], { type: "model/gltf-binary" });
-        
-        if (active) {
-          createdUrl = URL.createObjectURL(glbBlob);
-          setBlobUrl(createdUrl);
-        }
-      } catch (err) {
-        console.error("Error loading GLB model via Blob fetch:", err);
-      }
-    };
-
-    fetchModel();
-
-    return () => {
-      active = false;
-      if (createdUrl) {
-        URL.revokeObjectURL(createdUrl);
-      }
-    };
-  }, [product?.arModelUrl]);
-
 
   useEffect(() => {
     const el = modelViewerRef.current;
@@ -94,7 +54,7 @@ const ARProductViewer = ({ product }) => {
 
     try {
       el.setAttribute("ar", "");
-      el.setAttribute("ar-modes", "webxr scene-viewer quick-look");
+      el.setAttribute("ar-modes", "scene-viewer webxr quick-look");
       el.setAttribute("camera-controls", "");
       el.setAttribute("auto-rotate", "");
       el.setAttribute("shadow-intensity", "1");
@@ -104,29 +64,50 @@ const ARProductViewer = ({ product }) => {
     } catch (e) {
       console.error("Error setting model-viewer attributes:", e);
     }
-  }, [blobUrl]);
+  }, [modelUrl]);
 
   if (!isMounted) return null;
 
-  const modelUrl = blobUrl;
   const posterUrl = product?.images?.[0] || "/assets/poster-astronaut.webp";
   
-  // Get current page URL and replace localhost with the real PC IP for mobile scanning
+  // Get current page URL and replace localhost or 127.0.0.1 with the real PC IP for mobile scanning
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
-  const displayUrl = currentUrl.replace("localhost", localIp);
+  const displayUrl = currentUrl
+    .replace("localhost", localIp)
+    .replace("127.0.0.1", localIp);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(displayUrl)}&color=000000&bgcolor=ffffff`;
 
   const handleARActivation = () => {
-    const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    
-    if (isMobileDevice && modelViewerRef.current) {
-      const canActivate = modelViewerRef.current.canActivateAR;
-      console.log("canActivateAR status:", canActivate);
-      setArSupported(canActivate ? "AR Compatible: Yes" : "AR Compatible: No (Missing ARCore)");
-      // Trigger native mobile AR core/AR kit session
-      modelViewerRef.current.activateAR();
+    const isAndroid = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+    const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isAndroid && product?.arModelUrl) {
+      // Build absolute model URL with extension query param for correct model-viewer parsing
+      const finalModelUrl = product.arModelUrl.toLowerCase().endsWith(".glb") ||
+                            product.arModelUrl.toLowerCase().endsWith(".gltf") ||
+                            product.arModelUrl.includes(".glb?") ||
+                            product.arModelUrl.includes(".gltf?")
+                              ? product.arModelUrl
+                              : (product.arModelUrl.includes("?") 
+                                 ? `${product.arModelUrl}&ext=.glb` 
+                                 : `${product.arModelUrl}?ext=.glb`);
+
+      // Build native Google Scene Viewer intent URL
+      const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(finalModelUrl)}&mode=ar_only&title=${encodeURIComponent(product.name || "Product")}` + 
+                        `#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(window.location.href)};end;`;
+      
+      // Redirect to native app
+      window.location.href = intentUrl;
+    } else if (isIOS && product?.arModelUrl) {
+      if (modelViewerRef.current) {
+        modelViewerRef.current.activateAR();
+      }
+    } else if (isMobileDevice) {
+      // Generic mobile fallback
+      if (modelViewerRef.current) {
+        modelViewerRef.current.activateAR();
+      }
     } else {
-      // Show QR code scanner overlay for desktop users
       setShowQrModal(true);
     }
   };
@@ -166,7 +147,7 @@ const ARProductViewer = ({ product }) => {
               interaction-prompt="none"
               touch-action="none"
               ar=""
-              ar-modes="webxr scene-viewer quick-look"
+              ar-modes="scene-viewer webxr quick-look"
               style={{ width: "100%", height: "100%", display: "block" }}
             >
               <div 
@@ -185,11 +166,9 @@ const ARProductViewer = ({ product }) => {
                   <div className="text-xs text-slate-800 font-semibold tracking-wider">Loading 3D Model...</div>
                 </div>
               </div>
-
-
             </model-viewer>
 
-            {/* Unified AR Button (Visible on both desktop & mobile) */}
+            {/* Unified AR Button */}
             <button
               onClick={handleARActivation}
               style={{
@@ -222,22 +201,6 @@ const ARProductViewer = ({ product }) => {
             >
               <span>🕶️</span> View in your space
             </button>
-            {arSupported && (
-              <div style={{
-                position: "absolute",
-                bottom: "70px",
-                right: "20px",
-                backgroundColor: "rgba(0,0,0,0.85)",
-                color: "white",
-                padding: "6px 10px",
-                borderRadius: "6px",
-                fontSize: "11px",
-                zIndex: 10,
-                pointerEvents: "none"
-              }}>
-                {arSupported}
-              </div>
-            )}
           </div>
         ) : (
           <div style={{ textAlign: "center", padding: "20px" }}>

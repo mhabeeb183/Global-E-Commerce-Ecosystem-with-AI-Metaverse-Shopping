@@ -14,6 +14,12 @@ const vendorEarningSchema = new mongoose.Schema(
       required: true,
     },
 
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: false,
+    },
+
     orderAmount: {
       type: Number,
       required: true,
@@ -32,6 +38,11 @@ const vendorEarningSchema = new mongoose.Schema(
     vendorAmount: {
       type: Number,
       required: true,
+    },
+
+    affiliateCommission: {
+      type: Number,
+      default: 0,
     },
 
     status: {

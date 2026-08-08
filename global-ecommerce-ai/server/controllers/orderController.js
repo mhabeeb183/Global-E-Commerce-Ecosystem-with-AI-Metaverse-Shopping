@@ -124,6 +124,16 @@ for (const item of orderItems) {
     const createdOrder =
       await order.save();
 
+    // Credit Admin Wallet for paid Razorpay orders
+    if (createdOrder.isPaid && createdOrder.paymentMethod === "Razorpay") {
+      const admin = await User.findOne({ role: "admin" });
+      if (admin) {
+        admin.walletBalance = (admin.walletBalance || 0) + createdOrder.totalPrice;
+        await admin.save();
+        console.log(`Razorpay Payment: Credited Admin "${admin.name}" wallet with ₹${createdOrder.totalPrice}`);
+      }
+    }
+
    
 const affiliate =
   await Affiliate.findOne({
@@ -166,52 +176,66 @@ if (
   );
 }
       //
-// AFFILIATE COMMISSION
-//
-if (affiliateCode) {
-  try {
-    const affiliate =
-      await Affiliate.findOne({
-        affiliateCode,
-      });
+      // AFFILIATE COMMISSION
+      //
+      let targetAffiliateCode = affiliateCode;
+      if (!targetAffiliateCode) {
+        try {
+          const userAffiliate = await Affiliate.findOne({
+            referredUser: req.user._id,
+            isConverted: false,
+          });
+          if (userAffiliate) {
+            targetAffiliateCode = userAffiliate.affiliateCode;
+          }
+        } catch (err) {
+          console.log("Error looking up referred user affiliate:", err.message);
+        }
+      }
 
-    if (
-      affiliate &&
-      !affiliate.isConverted
-    ) {
-      affiliate.order =
-        createdOrder._id;
+      if (targetAffiliateCode) {
+        try {
+          const affiliate = await Affiliate.findOne({
+            affiliateCode: targetAffiliateCode,
+          });
 
-      affiliate.orderAmount =
-        totalPrice;
+          if (
+            affiliate &&
+            !affiliate.isConverted
+          ) {
+            affiliate.order =
+              createdOrder._id;
 
-      affiliate.commissionEarned =
-        (totalPrice *
-          affiliate.commissionRate) /
-        100;
+            affiliate.orderAmount =
+              totalPrice;
 
-      affiliate.isConverted =
-        true;
+            affiliate.commissionEarned =
+              (totalPrice *
+                affiliate.commissionRate) /
+              100;
 
-      affiliate.convertedAt =
-        new Date();
+            affiliate.isConverted =
+              true;
 
-      affiliate.referredUser =
-        req.user._id;
+            affiliate.convertedAt =
+              new Date();
 
-      await affiliate.save();
+            affiliate.referredUser =
+              req.user._id;
 
-      console.log(
-        "Affiliate Commission Added"
-      );
-    }
-  } catch (error) {
-    console.log(
-      "Affiliate Error:",
-      error.message
-    );
-  }
-}
+            await affiliate.save();
+
+            console.log(
+              "Affiliate Commission Added"
+            );
+          }
+        } catch (error) {
+          console.log(
+            "Affiliate Error:",
+            error.message
+          );
+        }
+      }
   //
 // MARK COUPON USED
 //
@@ -563,6 +587,16 @@ const markOrderPaid =
 
       const updatedOrder =
         await order.save();
+
+      // Credit Admin Wallet if paid price was not via Wallet
+      if (updatedOrder.paymentMethod !== "Wallet") {
+        const admin = await User.findOne({ role: "admin" });
+        if (admin) {
+          admin.walletBalance = (admin.walletBalance || 0) + updatedOrder.totalPrice;
+          await admin.save();
+          console.log(`Payment Marked: Credited Admin "${admin.name}" wallet with ₹${updatedOrder.totalPrice}`);
+        }
+      }
 
       res.status(200).json(
         updatedOrder

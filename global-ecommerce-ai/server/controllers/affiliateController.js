@@ -233,13 +233,26 @@ const approveAffiliatePayout = async (
       });
     }
 
-    affiliate.payoutStatus = "Approved";
+    // Prevent double crediting the wallet
+    if (affiliate.payoutStatus === "Approved" || affiliate.payoutStatus === "Paid") {
+      return res.status(400).json({
+        message: "Payout has already been approved or paid",
+      });
+    }
 
+    // Credit the promoter's wallet balance
+    const promoter = await User.findById(affiliate.affiliateUser);
+    if (promoter) {
+      promoter.walletBalance = (promoter.walletBalance || 0) + (affiliate.commissionEarned || 0);
+      await promoter.save();
+    }
+
+    affiliate.payoutStatus = "Approved";
     await affiliate.save();
 
     res.status(200).json({
       success: true,
-      message: "Payout approved",
+      message: "Payout approved and credited to wallet",
     });
   } catch (error) {
     res.status(500).json({

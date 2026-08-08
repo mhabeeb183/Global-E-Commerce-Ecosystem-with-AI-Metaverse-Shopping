@@ -15,16 +15,17 @@ const chatbotSearch = async (req, res) => {
     }
 
     const text = message.toLowerCase().trim();
+    const cleanText = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").trim();
 
     // =========================
 // BASIC AI CONVERSATION
 // =========================
 
 if (
-  text === "hi" ||
-  text === "hii" ||
-  text === "hello" ||
-  text === "hey"
+  cleanText === "hi" ||
+  cleanText === "hii" ||
+  cleanText === "hello" ||
+  cleanText === "hey"
 ) {
   return res.json({
     success: true,
@@ -234,9 +235,9 @@ if (
     }
 
     if (
-      text === "hi" ||
-      text === "hello" ||
-      text === "hey"
+      cleanText === "hi" ||
+      cleanText === "hello" ||
+      cleanText === "hey"
     ) {
       return res.json({
         success: true,

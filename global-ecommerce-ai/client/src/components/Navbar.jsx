@@ -31,6 +31,7 @@ const Navbar = () => {
   };
 
   const role = userInfo?.user?.role || userInfo?.role;
+  const isStaff = role === "admin" || role === "vendor";
 
   return (
     <nav className="bg-black text-white px-4 md:px-8 py-4 relative shadow-xl z-50">
@@ -45,12 +46,44 @@ const Navbar = () => {
 
         {/* Desktop Navigation Links */}
         <div className="hidden lg:flex gap-6 items-center">
-          <Link to="/" className="hover:text-blue-400 transition-colors font-medium">
-            {t("home")}
-          </Link>
-          <Link to="/" className="hover:text-blue-400 transition-colors font-medium">
-            {t("products")}
-          </Link>
+          {!isStaff && (
+            <>
+              <Link to="/" className="hover:text-blue-400 transition-colors font-medium">
+                {t("home")}
+              </Link>
+              <Link to="/" className="hover:text-blue-400 transition-colors font-medium">
+                {t("products")}
+              </Link>
+            </>
+          )}
+
+          {/* Admin Navbar Links */}
+          {role === "admin" && (
+            <>
+              <Link to="/admin/dashboard" className="hover:text-blue-400 transition-colors font-medium">
+                ⚙️ {t("adminDashboard")}
+              </Link>
+              <Link to="/admin-orders" className="hover:text-blue-400 transition-colors font-medium">
+                🛍️ {t("adminOrders")}
+              </Link>
+              <Link to="/admin/products" className="hover:text-blue-400 transition-colors font-medium">
+                📦 {t("adminProducts", "Manage Products")}
+              </Link>
+            </>
+          )}
+
+          {/* Vendor Navbar Links */}
+          {role === "vendor" && (
+            <>
+              <Link to="/vendor" className="hover:text-blue-400 transition-colors font-medium">
+                📊 {t("vendorDashboard")}
+              </Link>
+              <Link to="/vendor-orders" className="hover:text-blue-400 transition-colors font-medium">
+                📦 {t("vendorOrders")}
+              </Link>
+            </>
+          )}
+
           <Link to="/virtual-showroom" className="hover:text-purple-400 transition-colors font-medium">
             🥽 {t("virtualShowroom", "VR Showroom")}
           </Link>
@@ -65,17 +98,19 @@ const Navbar = () => {
         {/* Desktop Controls (Cart, Search, Lang, Profile) */}
         <div className="hidden lg:flex items-center gap-4">
           {/* Cart */}
-          <div className="relative">
-            <Link to="/cart" className="flex items-center hover:text-blue-400 transition-colors font-medium">
-              <span className="text-xl mr-1">🛒</span>
-              <span>{t("cart")}</span>
-            </Link>
-            {cartItems.length > 0 && (
-              <span className="absolute -top-2.5 -right-3.5 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                {cartItems.length}
-              </span>
-            )}
-          </div>
+          {!isStaff && (
+            <div className="relative">
+              <Link to="/cart" className="flex items-center hover:text-blue-400 transition-colors font-medium">
+                <span className="text-xl mr-1">🛒</span>
+                <span>{t("cart")}</span>
+              </Link>
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2.5 -right-3.5 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                  {cartItems.length}
+                </span>
+              )}
+            </div>
+          )}
 
           <LanguageSwitcher />
           
@@ -107,14 +142,18 @@ const Navbar = () => {
                   <Link to="/myorders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
                     📋 {t("myOrders")}
                   </Link>
-                  <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
-                    ❤️ {t("wishlist")}
-                  </Link>
+                  {!isStaff && (
+                    <>
+                      <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        ❤️ {t("wishlist")}
+                      </Link>
+                      <Link to="/subscriptions" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        ⭐ {t("subscriptions")}
+                      </Link>
+                    </>
+                  )}
                   <Link to="/wallet" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
                     💰 {t("wallet")}
-                  </Link>
-                  <Link to="/subscriptions" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
-                    ⭐ {t("subscriptions")}
                   </Link>
                   <Link to="/my-coupons" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
                     🏷️ {t("myCoupons")}
@@ -200,16 +239,18 @@ const Navbar = () => {
         {/* Mobile Header Row Controls */}
         <div className="flex lg:hidden items-center gap-4">
           {/* Cart */}
-          <div className="relative mr-1">
-            <Link to="/cart" className="flex items-center text-xl">
-              <span>🛒</span>
-            </Link>
-            {cartItems.length > 0 && (
-              <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                {cartItems.length}
-              </span>
-            )}
-          </div>
+          {!isStaff && (
+            <div className="relative mr-1">
+              <Link to="/cart" className="flex items-center text-xl">
+                <span>🛒</span>
+              </Link>
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                  {cartItems.length}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Hamburger Menu Toggle Button */}
           <button
@@ -249,12 +290,44 @@ const Navbar = () => {
           {/* Main Pages */}
           <div className="flex flex-col gap-3">
             <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider border-b border-zinc-800 pb-1">Navigation</p>
-            <Link to="/" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
-              🏠 {t("home")}
-            </Link>
-            <Link to="/" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
-              📦 {t("products")}
-            </Link>
+            {!isStaff && (
+              <>
+                <Link to="/" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  🏠 {t("home")}
+                </Link>
+                <Link to="/" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  📦 {t("products")}
+                </Link>
+              </>
+            )}
+
+            {/* Admin Mobile Links */}
+            {role === "admin" && (
+              <>
+                <Link to="/admin/dashboard" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  ⚙️ {t("adminDashboard")}
+                </Link>
+                <Link to="/admin-orders" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  🛍️ {t("adminOrders")}
+                </Link>
+                <Link to="/admin/products" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  📦 {t("adminProducts", "Manage Products")}
+                </Link>
+              </>
+            )}
+
+            {/* Vendor Mobile Links */}
+            {role === "vendor" && (
+              <>
+                <Link to="/vendor" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  📊 {t("vendorDashboard")}
+                </Link>
+                <Link to="/vendor-orders" className="text-lg font-medium hover:text-blue-400 py-1 transition-colors">
+                  📦 {t("vendorOrders")}
+                </Link>
+              </>
+            )}
+
             <Link to="/virtual-showroom" className="text-lg font-medium hover:text-purple-400 py-1 transition-colors">
               🥽 {t("virtualShowroom", "VR Showroom")}
             </Link>
@@ -278,14 +351,18 @@ const Navbar = () => {
               <Link to="/myorders" className="text-gray-300 hover:text-white py-1 transition-colors">
                 📋 {t("myOrders")}
               </Link>
-              <Link to="/wishlist" className="text-gray-300 hover:text-white py-1 transition-colors">
-                ❤️ {t("wishlist")}
-              </Link>
+              {!isStaff && (
+                <>
+                  <Link to="/wishlist" className="text-gray-300 hover:text-white py-1 transition-colors">
+                    ❤️ {t("wishlist")}
+                  </Link>
+                  <Link to="/subscriptions" className="text-gray-300 hover:text-white py-1 transition-colors">
+                    ⭐ {t("subscriptions")}
+                  </Link>
+                </>
+              )}
               <Link to="/wallet" className="text-gray-300 hover:text-white py-1 transition-colors">
                 💰 {t("wallet")}
-              </Link>
-              <Link to="/subscriptions" className="text-gray-300 hover:text-white py-1 transition-colors">
-                ⭐ {t("subscriptions")}
               </Link>
               <Link to="/my-coupons" className="text-gray-300 hover:text-white py-1 transition-colors">
                 🏷️ {t("myCoupons")}

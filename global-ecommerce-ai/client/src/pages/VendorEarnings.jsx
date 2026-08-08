@@ -53,7 +53,7 @@ const VendorEarnings = () => {
           </h3>
 
           <p className="text-3xl font-bold">
-            ₹{data.totalSales}
+            ₹{Number(data.totalSales || 0).toFixed(2)}
           </p>
         </div>
 
@@ -73,7 +73,7 @@ const VendorEarnings = () => {
           </h3>
 
           <p className="text-3xl font-bold text-green-600">
-            ₹{data.totalEarnings}
+            ₹{Number(data.totalEarnings || 0).toFixed(2)}
           </p>
         </div>
 
@@ -83,7 +83,7 @@ const VendorEarnings = () => {
           </h3>
 
           <p className="text-3xl font-bold text-yellow-600">
-            ₹{data.pendingEarnings}
+            ₹{Number(data.pendingEarnings || 0).toFixed(2)}
           </p>
         </div>
 
@@ -93,7 +93,7 @@ const VendorEarnings = () => {
           </h3>
 
           <p className="text-3xl font-bold text-blue-600">
-            ₹{data.availableBalance}
+            ₹{Number(data.availableBalance || 0).toFixed(2)}
           </p>
         </div>
       </div>
@@ -136,15 +136,15 @@ const VendorEarnings = () => {
                 </td>
 
                 <td className="p-3">
-                  ₹{item.orderAmount}
+                  ₹{Number(item.orderAmount || 0).toFixed(2)}
                 </td>
 
                 <td className="p-3">
-                  ₹{item.commissionAmount}
+                  ₹{Number(item.commissionAmount || 0).toFixed(2)}
                 </td>
 
                 <td className="p-3 font-semibold">
-                  ₹{item.vendorAmount}
+                  ₹{Number(item.vendorAmount || 0).toFixed(2)}
                 </td>
 
                 <td className="p-3">

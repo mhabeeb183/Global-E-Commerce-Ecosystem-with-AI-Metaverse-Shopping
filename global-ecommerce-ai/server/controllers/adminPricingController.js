@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { cacheDelete, cacheInvalidatePattern } = require("../services/redisCacheService");
 
 const updateCustomPricing =
   async (req, res) => {
@@ -17,19 +18,20 @@ const updateCustomPricing =
 
       product.customPricingAdjustment =
         req.body.adjustment;
-        const {
-            calculateDynamicPrice,
-            } = require(
-            "../services/dynamicPricingService"
-            );
+      product.dynamicPricingEnabled = true;
 
-            await product.save();
-
-            await calculateDynamicPrice(
-            product._id
-            );
+      const {
+        calculateDynamicPrice,
+      } = require(
+        "../services/dynamicPricingService"
+      );
 
       await product.save();
+      await calculateDynamicPrice(product._id);
+
+      // Invalidate caches to ensure UI shows fresh data
+      await cacheInvalidatePattern("products:*");
+      await cacheDelete(`product:${product._id}`);
 
       res.status(200).json({
         message:

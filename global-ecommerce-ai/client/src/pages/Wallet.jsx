@@ -177,7 +177,7 @@ const addMoneyHandler = async () => {
         </h2>
 
         <p className="text-5xl font-bold text-green-600 mt-4">
-          ₹ {walletBalance}
+          ₹ {Number(walletBalance || 0).toFixed(2)}
         </p>
 
         <input

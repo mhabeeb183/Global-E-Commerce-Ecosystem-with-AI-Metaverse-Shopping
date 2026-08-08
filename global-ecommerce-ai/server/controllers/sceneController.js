@@ -109,16 +109,19 @@ const os = require("os");
 // @access  Public
 const getLocalIp = (req, res) => {
   try {
-    const interfaces = os.networkInterfaces();
-    let localIp = "localhost";
-    for (const name of Object.keys(interfaces)) {
-      for (const netInterface of interfaces[name]) {
-        if (netInterface.family === "IPv4" && !netInterface.internal) {
-          localIp = netInterface.address;
-          break;
+    let localIp = process.env.HOST_IP || "localhost";
+
+    if (localIp === "localhost") {
+      const interfaces = os.networkInterfaces();
+      for (const name of Object.keys(interfaces)) {
+        for (const netInterface of interfaces[name]) {
+          if (netInterface.family === "IPv4" && !netInterface.internal) {
+            localIp = netInterface.address;
+            break;
+          }
         }
+        if (localIp !== "localhost") break;
       }
-      if (localIp !== "localhost") break;
     }
     // Base64 encode the IP to mask the private IP and avoid Private IP Disclosure scan alerts
     const encodedIp = Buffer.from(localIp).toString("base64");

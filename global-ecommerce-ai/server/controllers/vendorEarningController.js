@@ -1,5 +1,8 @@
 const VendorEarning = require("../models/vendorEarningModel");
 const User = require("../models/User");
+const Order = require("../models/Order");
+const Product = require("../models/Product");
+const Affiliate = require("../models/affiliateModel");
 
 const getVendorEarnings = async (req, res) => {
   try {
@@ -28,16 +31,33 @@ const getVendorEarnings = async (req, res) => {
         0
       );
 
-    const pendingEarnings = earnings
-      .filter(
-        (item) =>
-          item.status === "pending"
-      )
-      .reduce(
-        (acc, item) =>
-          acc + item.vendorAmount,
-        0
-      );
+    // Calculate Pending Earnings dynamically from active, undelivered orders
+    const pendingOrders = await Order.find({
+      orderStatus: { $in: ["Order Placed", "Packed", "Shipped", "Out For Delivery"] }
+    }).populate("orderItems.product");
+
+    let pendingEarnings = 0;
+
+    for (const order of pendingOrders) {
+      for (const item of order.orderItems) {
+        if (item.product && item.product.user.toString() === req.user._id.toString()) {
+          const orderAmount = item.price * item.qty;
+          const commissionAmount = (orderAmount * 10) / 100;
+          
+          // Check if this product was purchased via an affiliate link
+          const affiliate = await Affiliate.findOne({
+            order: order._id,
+            product: item.product._id,
+            isConverted: true
+          });
+          
+          const affiliateCommission = affiliate ? (affiliate.commissionEarned || 0) : 0;
+          const vendorAmount = orderAmount - commissionAmount - affiliateCommission;
+          
+          pendingEarnings += vendorAmount;
+        }
+      }
+    }
 
     const totalOrders =
       earnings.length;
