@@ -210,18 +210,6 @@ const VoiceSearch = ({ onSearch }) => {
           )}
         </div>
       )}
-
-      <style>{`
-        @keyframes pulse-ring {
-          0%   { box-shadow: 0 0 0 0   rgba(239,68,68,0.4); }
-          70%  { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
-          100% { box-shadow: 0 0 0 0   rgba(239,68,68,0); }
-        }
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50%       { opacity: 0.3; }
-        }
-      `}</style>
     </div>
   );
 };
