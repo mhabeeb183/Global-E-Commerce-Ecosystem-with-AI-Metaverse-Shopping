@@ -2,6 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import "@google/model-viewer";
 import axios from "axios";
 
+// Public HTTPS fallback mappings for pre-seeded models.
+// Android's native Google Scene Viewer does not allow loading models over unencrypted cleartext HTTP connections (such as localhost or local network IPs).
+const PUBLIC_HTTPS_FALLBACKS = {
+  "/assets/damagedhelmet.glb": "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/DamagedHelmet/glTF-Binary/DamagedHelmet.glb",
+  "/assets/robotexpressive.glb": "https://modelviewer.dev/shared-assets/models/RobotExpressive.glb",
+  "/assets/materialsvariantsshoe.glb": "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb",
+  "/assets/toycar.glb": "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/ToyCar/glTF-Binary/ToyCar.glb",
+  "/assets/sheenchair.glb": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/SheenChair/glTF-Binary/SheenChair.glb",
+  "/assets/zky8st19pdikibwes5an.glb": "https://res.cloudinary.com/dugvuaam3/raw/upload/v1785520994/products/models/zky8st19pdikibwes5an?ext=.glb",
+  "/assets/anuh4fgbysdwex9yhcjh.glb": "https://res.cloudinary.com/dugvuaam3/raw/upload/v1785862430/products/models/anuh4fgbysdwex9yhcjh?ext=.glb"
+};
+
 /**
  * AR/VR Product Viewer Component
  * Uses @google/model-viewer for true 3D and AR experiences.
@@ -13,6 +25,15 @@ const ARProductViewer = ({ product }) => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [localIp, setLocalIp] = useState("localhost");
   const modelViewerRef = useRef(null);
+
+  // Web-based AR Camera States
+  const [isArActive, setIsArActive] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [cameraError, setCameraError] = useState("");
+  const [isCameraLoading, setIsCameraLoading] = useState(false);
+  const [permissionState, setPermissionState] = useState("prompt"); // 'prompt', 'granted', 'denied', 'unavailable', 'error'
+  const videoRef = useRef(null);
+  const arModelViewerRef = useRef(null);
 
   const isMobileDevice = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
@@ -66,8 +87,6 @@ const ARProductViewer = ({ product }) => {
     }
   }, [modelUrl]);
 
-  if (!isMounted) return null;
-
   const posterUrl = product?.images?.[0] || "/assets/poster-astronaut.webp";
   
   // Get current page URL and replace localhost or 127.0.0.1 with the real PC IP for mobile scanning
@@ -77,13 +96,108 @@ const ARProductViewer = ({ product }) => {
     .replace("127.0.0.1", localIp);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(displayUrl)}&color=000000&bgcolor=ffffff`;
 
-  const handleARActivation = () => {
+  const startCamera = async () => {
+    setIsCameraLoading(true);
+    setCameraError("");
+    setPermissionState("prompt");
+
+    console.log("[AR Camera] Camera permission requested...");
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error("[AR Camera] navigator.mediaDevices unavailable");
+      setPermissionState("unavailable");
+      setCameraError("Your browser or device does not support WebAR camera access, or you are not in a secure (HTTPS) context.");
+      setIsCameraLoading(false);
+      return;
+    }
+
+    try {
+      console.log("[AR Camera] Calling getUserMedia...");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+
+      console.log("[AR Camera] Camera stream successfully created.");
+      setCameraStream(stream);
+      setPermissionState("granted");
+
+      // Set stream on the video element once it is mounted
+      setTimeout(() => {
+        if (videoRef.current) {
+          console.log("[AR Camera] Video element received the stream.");
+          videoRef.current.srcObject = stream;
+          videoRef.current.play()
+            .then(() => {
+              console.log("[AR Camera] Video started playing.");
+            })
+            .catch(e => {
+              console.error("[AR Camera] Video failed to start playing:", e);
+            });
+        }
+      }, 100);
+    } catch (err) {
+      console.error("[AR Camera] Browser error occurred:", err);
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setPermissionState("denied");
+        setCameraError("Camera permission denied. Please allow camera access in your browser settings to experience AR.");
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setPermissionState("error");
+        setCameraError("No rear/environment camera found on this device.");
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        setPermissionState("error");
+        setCameraError("Camera is already in use by another app or browser tab.");
+      } else if (err.name === "OverconstrainedError") {
+        setPermissionState("error");
+        setCameraError("No camera matches the requested high-quality environment constraints.");
+      } else if (err.name === "SecurityError") {
+        setPermissionState("error");
+        setCameraError("Security block: Camera access is not allowed on this origin.");
+      } else {
+        setPermissionState("error");
+        setCameraError(`Camera error: ${err.message || err.name}`);
+      }
+    } finally {
+      setIsCameraLoading(false);
+    }
+  };
+
+  const stopCamera = () => {
+    console.log("[AR Camera] Cleaning up camera stream...");
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => {
+        track.stop();
+        console.log(`[AR Camera] Stopped track: ${track.label}`);
+      });
+      setCameraStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  useEffect(() => {
+    if (isArActive) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    return () => {
+      stopCamera();
+    };
+  }, [isArActive]);
+
+  const launchNativeAR = () => {
     const isAndroid = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
     const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if (isAndroid && product?.arModelUrl) {
       // Build absolute model URL with extension query param for correct model-viewer parsing
-      const finalModelUrl = product.arModelUrl.toLowerCase().endsWith(".glb") ||
+      let finalModelUrl = product.arModelUrl.toLowerCase().endsWith(".glb") ||
                             product.arModelUrl.toLowerCase().endsWith(".gltf") ||
                             product.arModelUrl.includes(".glb?") ||
                             product.arModelUrl.includes(".gltf?")
@@ -92,25 +206,53 @@ const ARProductViewer = ({ product }) => {
                                  ? `${product.arModelUrl}&ext=.glb` 
                                  : `${product.arModelUrl}?ext=.glb`);
 
+      // Map local pre-seeded model URLs to public secure HTTPS fallback URLs if running in local development mode.
+      const normalizedPath = finalModelUrl.toLowerCase().split("?")[0];
+      if (PUBLIC_HTTPS_FALLBACKS[normalizedPath]) {
+        finalModelUrl = PUBLIC_HTTPS_FALLBACKS[normalizedPath];
+      } else if (!finalModelUrl.startsWith("http://") && !finalModelUrl.startsWith("https://")) {
+        try {
+          finalModelUrl = new URL(finalModelUrl, window.location.href).href;
+        } catch (e) {
+          console.error("Error resolving absolute model URL:", e);
+        }
+      }
+
       // Build native Google Scene Viewer intent URL
       const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(finalModelUrl)}&mode=ar_only&title=${encodeURIComponent(product.name || "Product")}` + 
                         `#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(window.location.href)};end;`;
       
-      // Redirect to native app
+      console.log("[AR Camera] Launching Google Scene Viewer intent:", intentUrl);
       window.location.href = intentUrl;
     } else if (isIOS && product?.arModelUrl) {
       if (modelViewerRef.current) {
+        console.log("[AR Camera] Activating iOS Quick Look...");
         modelViewerRef.current.activateAR();
       }
-    } else if (isMobileDevice) {
-      // Generic mobile fallback
+    } else {
       if (modelViewerRef.current) {
+        console.log("[AR Camera] Activating fallback AR...");
         modelViewerRef.current.activateAR();
+      }
+    }
+  };
+
+  const handleARActivation = () => {
+    if (isMobileDevice) {
+      const hasCameraSupport = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      if (hasCameraSupport) {
+        console.log("[AR Camera] WebAR camera support detected. Launching custom overlay...");
+        setIsArActive(true);
+      } else {
+        console.log("[AR Camera] getUserMedia unavailable (likely insecure HTTP context). Falling back to native viewer...");
+        launchNativeAR();
       }
     } else {
       setShowQrModal(true);
     }
   };
+
+  if (!isMounted) return null;
 
   return (
     <div style={{ borderRadius: "16px", overflow: "hidden", background: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", position: "relative" }}>
@@ -305,6 +447,313 @@ const ARProductViewer = ({ product }) => {
           </div>
         </div>
       )}
+
+      {/* Web-based AR Fullscreen Overlay */}
+      {isArActive && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "#000",
+          zIndex: 99999,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden"
+        }}>
+          {/* Loading state spinner */}
+          {isCameraLoading && (
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              zIndex: 10,
+              background: "#121214"
+            }}>
+              <div style={{
+                width: "40px",
+                height: "40px",
+                border: "4px solid rgba(255,255,255,0.1)",
+                borderLeftColor: "#3b82f6",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                marginBottom: "16px"
+              }}></div>
+              <p style={{ fontSize: "14px", fontWeight: "600" }}>Initializing AR Camera...</p>
+            </div>
+          )}
+
+          {/* Error / Denied / Unavailable States */}
+          {permissionState === "denied" && (
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              zIndex: 10,
+              background: "#121214",
+              padding: "24px",
+              textAlign: "center"
+            }}>
+              <span style={{ fontSize: "48px", marginBottom: "16px" }}>🔒</span>
+              <h4 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "8px" }}>Camera Access Denied</h4>
+              <p style={{ fontSize: "14px", color: "#a1a1aa", maxWidth: "320px", marginBottom: "24px", lineHeight: "1.5" }}>
+                {cameraError}
+              </p>
+              <button
+                onClick={() => setIsArActive(false)}
+                style={{
+                  background: "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "10px 24px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Go Back
+              </button>
+            </div>
+          )}
+
+          {permissionState === "unavailable" && (
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              zIndex: 10,
+              background: "#121214",
+              padding: "24px",
+              textAlign: "center"
+            }}>
+              <span style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</span>
+              <h4 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "8px" }}>AR Camera Unavailable</h4>
+              <p style={{ fontSize: "14px", color: "#a1a1aa", maxWidth: "320px", marginBottom: "24px", lineHeight: "1.5" }}>
+                {cameraError}
+              </p>
+              <button
+                onClick={() => setIsArActive(false)}
+                style={{
+                  background: "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "10px 24px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Go Back
+              </button>
+            </div>
+          )}
+
+          {permissionState === "error" && (
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              zIndex: 10,
+              background: "#121214",
+              padding: "24px",
+              textAlign: "center"
+            }}>
+              <span style={{ fontSize: "48px", marginBottom: "16px" }}>❌</span>
+              <h4 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "8px" }}>Camera Connection Failed</h4>
+              <p style={{ fontSize: "14px", color: "#ef4444", maxWidth: "320px", marginBottom: "24px", lineHeight: "1.5" }}>
+                {cameraError}
+              </p>
+              <button
+                onClick={() => setIsArActive(false)}
+                style={{
+                  background: "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "10px 24px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Close
+              </button>
+            </div>
+          )}
+
+          {/* Active WebAR Rendering Layer */}
+          {permissionState === "granted" && (
+            <div style={{ position: "relative", width: "100%", height: "100%" }}>
+              {/* Layer 1: Live Video Feed */}
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                onLoadedMetadata={() => {
+                  console.log("[AR Camera] Video metadata loaded.");
+                }}
+                onPlay={() => {
+                  console.log("[AR Camera] Video started playing.");
+                }}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  zIndex: 1,
+                  pointerEvents: "none"
+                }}
+              />
+
+              {/* Layer 2: Model Viewer (Transparent) */}
+              <model-viewer
+                ref={arModelViewerRef}
+                src={modelUrl}
+                alt={product?.name || "3D model"}
+                camera-controls
+                interaction-prompt="none"
+                touch-action="none"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 2,
+                  background: "transparent",
+                  "--poster-color": "transparent"
+                }}
+              />
+
+              {/* Layer 3: Controls Overlay */}
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 3,
+                pointerEvents: "none",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                padding: "20px"
+              }}>
+                {/* Header Controls */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", pointerEvents: "auto" }}>
+                  <button
+                    onClick={() => setIsArActive(false)}
+                    style={{
+                      background: "rgba(0,0,0,0.5)",
+                      border: "none",
+                      color: "white",
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "20px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    ✕
+                  </button>
+                  <div style={{
+                    background: "rgba(0,0,0,0.6)",
+                    color: "white",
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    backdropFilter: "blur(4px)"
+                  }}>
+                    AR Try-On Mode
+                  </div>
+                </div>
+
+                {/* Center scan instructions overlay */}
+                <div style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center"
+                }}>
+                  <p style={{
+                    background: "rgba(0,0,0,0.65)",
+                    color: "white",
+                    padding: "10px 20px",
+                    borderRadius: "20px",
+                    fontSize: "13px",
+                    maxWidth: "280px",
+                    lineHeight: "1.4",
+                    marginBottom: "16px",
+                    backdropFilter: "blur(4px)"
+                  }}>
+                    Point camera at floor or flat space and drag to position product
+                  </p>
+                  <div className="phone-scan-icon" style={{
+                    width: "40px",
+                    height: "60px",
+                    border: "3px solid white",
+                    borderRadius: "8px",
+                    animation: "horizontalScan 2.5s ease-in-out infinite"
+                  }}></div>
+                </div>
+
+                {/* Footer Controls */}
+                <div style={{
+                  background: "rgba(0,0,0,0.7)",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  color: "white",
+                  textAlign: "center",
+                  width: "100%",
+                  pointerEvents: "auto",
+                  backdropFilter: "blur(6px)"
+                }}>
+                  <h4 style={{ fontSize: "15px", fontWeight: "bold", marginBottom: "4px" }}>
+                    {product?.name}
+                  </h4>
+                  <p style={{ fontSize: "12px", color: "#a1a1aa" }}>
+                    Category: {product?.category} | Brand: {product?.brand}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Animations style injection */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes horizontalScan {
+          0% { transform: translateX(-35px) rotate(-12deg); }
+          50% { transform: translateX(35px) rotate(12deg); }
+          100% { transform: translateX(-35px) rotate(-12deg); }
+        }
+      `}</style>
 
       {/* Dynamic inline styles are avoided to comply with Content Security Policy */}
     </div>

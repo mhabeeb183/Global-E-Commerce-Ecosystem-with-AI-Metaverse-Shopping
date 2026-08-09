@@ -334,7 +334,10 @@ const getVendorOrders =
         );
 
       const orders =
-        await Order.find();
+        await Order.find().populate(
+          "user",
+          "name email"
+        );
 
       const vendorOrders =
         orders.filter((order) =>

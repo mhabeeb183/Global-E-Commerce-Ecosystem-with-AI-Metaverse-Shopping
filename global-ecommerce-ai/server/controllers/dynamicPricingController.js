@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { getRecentSalesVolume } = require("../services/dynamicPricingService");
 
 const getVendorDynamicPricing = async (
   req,
@@ -9,76 +10,78 @@ const getVendorDynamicPricing = async (
       user: req.user._id,
     });
 
-    const pricingData = products.map(
-      (product) => {
-        let demandStatus = "Normal";
+    const pricingData = await Promise.all(
+      products.map(
+        async (product) => {
+          const recentSales = await getRecentSalesVolume(product._id);
+          let demandStatus = "Normal";
 
-        if (product.soldCount > 100) {
-          demandStatus =
-            "Very High Demand";
-        } else if (
-          product.soldCount > 50
-        ) {
-          demandStatus =
-            "High Demand";
+          if (recentSales > 100) {
+            demandStatus =
+              "Very High Demand";
+          } else if (
+            recentSales > 50
+          ) {
+            demandStatus =
+              "High Demand";
+          }
+
+          let stockStatus = "Healthy";
+
+          if (product.stock === 0) {
+            stockStatus =
+              "Out Of Stock";
+          } else if (
+            product.stock <=
+            product.lowStockThreshold
+          ) {
+            stockStatus = "Low Stock";
+          }
+
+          return {
+            _id: product._id,
+
+            name: product.name,
+
+            // PRICING
+            basePrice:
+              product.basePrice ||
+              product.price,
+
+            dynamicPrice:
+              product.dynamicPrice ||
+              product.price,
+
+            currentPrice:
+              product.dynamicPrice ||
+              product.price,
+
+            // VENDOR CONTROLS
+            dynamicPricingEnabled:
+              product.dynamicPricingEnabled,
+
+            minPrice:
+              product.minPrice,
+
+            maxPrice:
+              product.maxPrice,
+
+            // INVENTORY
+            stock: product.stock,
+
+            soldCount: recentSales,
+
+            stockStatus,
+
+            demandStatus,
+
+            // RULES
+            pricingRulesApplied:
+              product.pricingRulesApplied ||
+              [],
+          };
         }
-
-        let stockStatus = "Healthy";
-
-        if (product.stock === 0) {
-          stockStatus =
-            "Out Of Stock";
-        } else if (
-          product.stock <=
-          product.lowStockThreshold
-        ) {
-          stockStatus = "Low Stock";
-        }
-
-        return {
-          _id: product._id,
-
-          name: product.name,
-
-          // PRICING
-          basePrice:
-            product.basePrice ||
-            product.price,
-
-          dynamicPrice:
-            product.dynamicPrice ||
-            product.price,
-
-          currentPrice:
-            product.dynamicPrice ||
-            product.price,
-
-          // VENDOR CONTROLS
-          dynamicPricingEnabled:
-            product.dynamicPricingEnabled,
-
-          minPrice:
-            product.minPrice,
-
-          maxPrice:
-            product.maxPrice,
-
-          // INVENTORY
-          stock: product.stock,
-
-          soldCount:
-            product.soldCount,
-
-          stockStatus,
-
-          demandStatus,
-
-          // RULES
-          pricingRulesApplied:
-            product.pricingRulesApplied ||
-            [],
-        };
-      }
+      )
     );
 
     res.status(200).json(

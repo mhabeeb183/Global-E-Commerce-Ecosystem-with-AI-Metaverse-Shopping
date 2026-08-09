@@ -1,4 +1,32 @@
 const Product = require("../models/Product");
+const Order = require("../models/Order");
+const mongoose = require("mongoose");
+
+const getRecentSalesVolume = async (productId) => {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const result = await Order.aggregate([
+    {
+      $match: {
+        orderStatus: { $ne: "Cancelled" },
+        createdAt: { $gte: sevenDaysAgo }
+      }
+    },
+    { $unwind: "$orderItems" },
+    {
+      $match: {
+        "orderItems.product": new mongoose.Types.ObjectId(productId)
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalQty: { $sum: "$orderItems.qty" }
+      }
+    }
+  ]);
+  return result.length > 0 ? result[0].totalQty : 0;
+};
+
 
 const calculateDynamicPrice = async (
   productId
@@ -44,9 +72,12 @@ const calculateDynamicPrice = async (
     );
   }
 
+  // Fetch recent sales volume (last 7 days)
+  const recentSales = await getRecentSalesVolume(productId);
+
   // VERY HIGH DEMAND
   if (
-    product.soldCount > 100
+    recentSales > 100
   ) {
     finalPrice +=
       product.basePrice * 0.15;
@@ -58,7 +89,7 @@ const calculateDynamicPrice = async (
 
   // HIGH DEMAND
   else if (
-    product.soldCount > 50
+    recentSales > 50
   ) {
     finalPrice +=
       product.basePrice * 0.10;
@@ -125,4 +156,5 @@ if (product.customPricingAdjustment) {
 
 module.exports = {
   calculateDynamicPrice,
+  getRecentSalesVolume,
 };

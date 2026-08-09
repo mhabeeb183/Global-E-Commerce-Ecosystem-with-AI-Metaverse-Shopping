@@ -169,6 +169,27 @@ const VendorOrders = () => {
                 ))}
               </div>
 
+              {/* SHIPPING DETAILS */}
+              <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: "10px", marginBottom: "12px" }}>
+                <p style={{ fontWeight: "700", fontSize: "14px", marginBottom: "6px" }}>Shipping Details:</p>
+                <div style={{ fontSize: "13px", color: "#4b5563", background: "#f9fafb", padding: "12px", borderRadius: "8px", border: "1px solid #f3f4f6" }}>
+                  <p style={{ margin: "4px 0" }}>
+                    👤 <strong>Name:</strong> {order.shippingDetails?.name || order.user?.name || "N/A"}
+                  </p>
+                  <p style={{ margin: "4px 0" }}>
+                    📍 <strong>Address:</strong> {order.shippingDetails?.address || "N/A"}
+                  </p>
+                  <p style={{ margin: "4px 0" }}>
+                    📞 <strong>Mobile:</strong> {order.shippingDetails?.mobile || "N/A"}
+                  </p>
+                  {order.user?.email && (
+                    <p style={{ margin: "4px 0" }}>
+                      ✉️ <strong>Email:</strong> {order.user.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* ── CANCELLATION SECTION ──────────────────────────────── */}
               {order.isCancelled ? (
                 <div style={{
