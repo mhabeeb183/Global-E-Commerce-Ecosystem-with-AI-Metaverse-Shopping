@@ -11,13 +11,15 @@ import { store } from "./redux/store";
 
 import { BrowserRouter } from "react-router-dom";
 
-// Global Axios Request Interceptor to dynamically rewrite localhost:5000 to frontend host (for Vite proxy)
+// Global Axios Request Interceptor to dynamically rewrite localhost:5000 to correct backend host
 axios.interceptors.request.use(
   (config) => {
     if (config.url && config.url.includes("localhost:5000")) {
-      const frontendHost = window.location.host;
-      const protocol = window.location.protocol;
-      config.url = config.url.replace("http://localhost:5000", `${protocol}//${frontendHost}`);
+      const socketUrl = import.meta.env.VITE_SOCKET_URL;
+      const backendUrl = socketUrl && !socketUrl.includes("localhost")
+        ? socketUrl
+        : `${window.location.protocol}//${window.location.host}`;
+      config.url = config.url.replace("http://localhost:5000", backendUrl);
     }
     return config;
   },
