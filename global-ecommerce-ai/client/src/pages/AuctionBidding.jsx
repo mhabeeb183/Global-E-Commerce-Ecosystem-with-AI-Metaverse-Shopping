@@ -24,7 +24,7 @@ const AuctionBidding = () => {
       const envUrl = import.meta.env.VITE_SOCKET_URL;
       const finalSocketUrl = envUrl && !envUrl.includes("localhost")
         ? envUrl
-        : `${window.location.protocol}//${window.location.hostname}:5000`;
+        : `${window.location.protocol}//${window.location.host}`;
 
       const s = io(finalSocketUrl, {
         auth: { token },

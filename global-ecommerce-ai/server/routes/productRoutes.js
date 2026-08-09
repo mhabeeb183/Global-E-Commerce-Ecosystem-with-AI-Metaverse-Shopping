@@ -10,6 +10,7 @@ const {
   getAllReviews,
   getLowStockProducts,
   getVendorReviews,
+  getVendorProducts,
 } = require("../controllers/productController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -22,6 +23,16 @@ const router = express.Router();
 // PUBLIC ROUTES
 //
 router.get("/", cacheMiddleware("products", 300), getProducts);
+
+//
+// GET VENDOR PRODUCTS
+// IMPORTANT: Must be above "/:id"
+//
+router.get(
+  "/vendor/my-products",
+  protect,
+  getVendorProducts
+);
 
 //
 // LOW STOCK PRODUCTS (ADMIN)
@@ -44,6 +55,7 @@ router.get(
   protect,
   getVendorReviews
 );
+
 
 //
 // ADMIN - GET ALL REVIEWS

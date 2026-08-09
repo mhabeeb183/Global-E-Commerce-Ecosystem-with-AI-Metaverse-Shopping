@@ -27,8 +27,6 @@ const AdminDashboard = () => {
     monthlyRevenue: [],
   });
 
-  const [vendorRequests, setVendorRequests] = useState([]);
-
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
@@ -51,28 +49,7 @@ const AdminDashboard = () => {
       }
     };
 
-    const fetchVendorRequests = async () => {
-      try {
-        const userInfo = JSON.parse(
-          localStorage.getItem("userInfo")
-        );
-
-        const { data } = await axios.get(
-          "http://localhost:5000/api/vendor-requests",
-          {
-            headers: {
-              Authorization: `Bearer ${userInfo.token}`,
-            },
-          }
-        );
-        setVendorRequests(data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
     fetchAnalytics();
-    fetchVendorRequests();
   }, []);
 
   const pieData = [
@@ -90,23 +67,7 @@ const AdminDashboard = () => {
     },
   ];
 
-  const handleReviewRequest = async (id, status) => {
-    try {
-      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      const notes = prompt("Enter review notes (optional):") || "";
-      await axios.put(
-        `http://localhost:5000/api/vendor-requests/${id}`,
-        { status, reviewNotes: notes },
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
-      );
-      alert(`Request ${status} successfully!`);
-      setVendorRequests((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, status } : r))
-      );
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to review request");
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
@@ -311,75 +272,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Vendor Applications */}
-      <div className="bg-white rounded-xl shadow-lg p-8 mt-10">
-        <h2 className="text-2xl font-bold mb-6">🏪 Vendor Onboarding Requests</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-3 text-left">Applicant</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Business Name</th>
-                <th className="p-3 text-left">Description</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendorRequests.map((req) => (
-                <tr key={req._id} className="border-b">
-                  <td className="p-3 font-semibold">{req.user?.name}</td>
-                  <td className="p-3 text-gray-500">{req.user?.email}</td>
-                  <td className="p-3">{req.businessName}</td>
-                  <td className="p-3 text-sm max-w-xs truncate">{req.description}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        req.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : req.status === "approved"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {req.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    {req.status === "pending" && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleReviewRequest(req._id, "approved")}
-                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-semibold cursor-pointer"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReviewRequest(req._id, "rejected")}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-semibold cursor-pointer"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                    {req.status !== "pending" && (
-                      <span className="text-gray-400 text-sm italic">Reviewed</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {vendorRequests.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="text-center p-6 text-gray-400">
-                    No vendor applications found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
     </div>
   );
 };

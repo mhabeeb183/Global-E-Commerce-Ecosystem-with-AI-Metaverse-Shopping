@@ -36,13 +36,22 @@ const [editArModelUrl, setEditArModelUrl] = useState("");
 
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (userInfo && userInfo.token) {
+      fetchProducts();
+    }
+  }, [userInfo]);
 
   const fetchProducts = async () => {
+    if (!userInfo || !userInfo.token) return;
     try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
       const { data } = await axios.get(
-        "http://localhost:5000/api/products"
+        "http://localhost:5000/api/products/vendor/my-products",
+        config
       );
 
       setProducts(data);
@@ -59,6 +68,7 @@ const [editArModelUrl, setEditArModelUrl] = useState("");
       console.log(error);
     }
   };
+
 
   const uploadImageHandler = async (file) => {
   try {
