@@ -58,8 +58,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
-    
+      role: (role === "vendor" || role === "user") ? role : "user",
     });
 
     //

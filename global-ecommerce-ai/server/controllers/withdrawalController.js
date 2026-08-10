@@ -30,6 +30,12 @@ const requestWithdrawal = async (req, res) => {
       withdrawalAmount = earning.vendorAmount;
     }
 
+    if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
+      return res.status(400).json({
+        message: "Withdrawal amount must be a positive number",
+      });
+    }
+
     if (!vendor || vendor.walletBalance < withdrawalAmount) {
       return res.status(400).json({
         message: "Insufficient wallet balance",

@@ -25,11 +25,18 @@ const addMoney = async (req, res) => {
   try {
     const { amount } = req.body;
 
+    const parsedAmount = Number(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({
+        message: "Amount must be a positive number",
+      });
+    }
+
     const user = await User.findById(
       req.user._id
     );
 
-    user.walletBalance += Number(amount);
+    user.walletBalance += parsedAmount;
 
     await user.save();
 
@@ -51,12 +58,19 @@ const useWalletBalance = async (
   try {
     const { amount } = req.body;
 
+    const parsedAmount = Number(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({
+        message: "Amount must be a positive number",
+      });
+    }
+
     const user = await User.findById(
       req.user._id
     );
 
     if (
-      user.walletBalance < Number(amount)
+      user.walletBalance < parsedAmount
     ) {
       return res.status(400).json({
         message:
@@ -64,15 +78,15 @@ const useWalletBalance = async (
       });
     }
 
-    user.walletBalance -= Number(amount);
+    user.walletBalance -= parsedAmount;
     await user.save();
 
     // Credit Admin Wallet
     const admin = await User.findOne({ role: "admin" });
     if (admin) {
-      admin.walletBalance = (admin.walletBalance || 0) + Number(amount);
+      admin.walletBalance = (admin.walletBalance || 0) + parsedAmount;
       await admin.save();
-      console.log(`Wallet Payment: Credited Admin "${admin.name}" wallet with ₹${amount}`);
+      console.log(`Wallet Payment: Credited Admin "${admin.name}" wallet with ₹${parsedAmount}`);
     }
 
     res.json({

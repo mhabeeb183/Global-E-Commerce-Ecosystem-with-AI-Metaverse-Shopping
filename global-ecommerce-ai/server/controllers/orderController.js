@@ -40,46 +40,64 @@ const createOrder = async (req, res) => {
         message: "No order items",
       });
     }
-    //
-// INVENTORY VALIDATION
-//
-for (const item of orderItems) {
-  const product =
-    await Product.findById(
-      item.product
-    );
 
-  if (!product) {
-    return res.status(404).json({
-      message: `Product not found`,
-    });
-  }
+    // Validate inventory and calculate verified total price from DB
+    let calculatedTotalPrice = 0;
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product);
 
-  if (product.stock < item.qty) {
-    return res.status(400).json({
-      message: `${product.name} is out of stock`,
-    });
-  }
-}
+      if (!product) {
+        return res.status(404).json({
+          message: `Product not found`,
+        });
+      }
+
+      if (product.stock < item.qty) {
+        return res.status(400).json({
+          message: `${product.name} is out of stock`,
+        });
+      }
+
+      const itemPrice = product.dynamicPrice || product.price;
+      calculatedTotalPrice += itemPrice * item.qty;
+      item.price = itemPrice; // Ensure DB price is set in the item
+    }
 
     const dbUser = await User.findById(req.user._id);
     const hasActiveSubscription = !!(dbUser && dbUser.isSubscribed && dbUser.subscriptionExpiry && new Date(dbUser.subscriptionExpiry) > new Date());
     const deliveryCharge = hasActiveSubscription ? 0 : 70;
+
+    // Validate Coupon if provided
+    let calculatedDiscount = 0;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode });
+      if (coupon && !coupon.isUsed && new Date() <= coupon.expiryDate) {
+        if (calculatedTotalPrice >= coupon.minOrderAmount) {
+          if (coupon.discountType === "fixed") {
+            calculatedDiscount = coupon.discountValue;
+          } else {
+            calculatedDiscount = (calculatedTotalPrice * coupon.discountValue) / 100;
+          }
+        }
+      }
+    }
+
+    const finalTotalPrice = Math.max(0, calculatedTotalPrice - calculatedDiscount + deliveryCharge);
 
     const order = new Order({
       user: req.user._id,
 
       orderItems,
 
-      totalPrice,
+      totalPrice: finalTotalPrice,
 
-      discount: discount || 0,
+      discount: calculatedDiscount,
 
       deliveryCharge,
 
       isPaid: isPaid || false,
 
-      paidPrice: paidPrice || 0,
+      paidPrice: isPaid ? finalTotalPrice : 0,
 
       paidAt: isPaid
         ? Date.now()

@@ -3,10 +3,12 @@ const router = express.Router();
 
 const upload = require("../middleware/uploadMiddleware");
 const cloudinary = require("../config/cloudinary");
-
 const streamifier = require("streamifier");
 
-router.post("/", upload.single("image"), async (req, res) => {
+const { protect } = require("../middleware/authMiddleware");
+const adminOrVendor = require("../middleware/adminMiddleware");
+
+router.post("/", protect, adminOrVendor, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -43,7 +45,7 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
-router.post("/model", upload.single("model"), async (req, res) => {
+router.post("/model", protect, adminOrVendor, upload.single("model"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
