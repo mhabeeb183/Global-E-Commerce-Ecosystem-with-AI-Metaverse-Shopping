@@ -69,6 +69,9 @@ const Navbar = () => {
               <Link to="/admin/products" className="hover:text-blue-400 transition-colors font-medium">
                 📦 {t("adminProducts", "Manage Products")}
               </Link>
+              <Link to="/admin/coupons" className="hover:text-blue-400 transition-colors font-medium">
+                🏷️ {t("adminCoupons", "Manage Coupons")}
+              </Link>
             </>
           )}
 
@@ -208,6 +211,9 @@ const Navbar = () => {
                       </Link>
                       <Link to="/admin/fraud" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         🛡️ {t("fraudDetection")}
+                      </Link>
+                      <Link to="/admin/coupons" className="block px-4 py-2 text-sm text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        🏷️ {t("adminCoupons", "Manage Coupons")}
                       </Link>
                     </div>
                   )}
@@ -419,6 +425,9 @@ const Navbar = () => {
               </Link>
               <Link to="/admin/fraud" className="text-gray-300 hover:text-white py-1 transition-colors">
                 🛡️ {t("fraudDetection")}
+              </Link>
+              <Link to="/admin/coupons" className="text-gray-300 hover:text-white py-1 transition-colors">
+                🏷️ {t("adminCoupons", "Manage Coupons")}
               </Link>
             </div>
           )}

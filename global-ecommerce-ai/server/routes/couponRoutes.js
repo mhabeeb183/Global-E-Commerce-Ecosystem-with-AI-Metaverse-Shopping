@@ -1,9 +1,10 @@
 const express = require("express");
-
 const {
   createCoupon,
   getMyCoupons,
   validateCoupon,
+  getAllCoupons,
+  deleteCoupon,
 } = require(
   "../controllers/couponController"
 );
@@ -40,6 +41,20 @@ router.post(
   protect,
   admin,
   createCoupon
+);
+
+router.get(
+  "/",
+  protect,
+  admin,
+  getAllCoupons
+);
+
+router.delete(
+  "/:id",
+  protect,
+  admin,
+  deleteCoupon
 );
 
 module.exports = router;

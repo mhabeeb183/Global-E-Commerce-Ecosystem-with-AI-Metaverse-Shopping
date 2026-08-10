@@ -38,6 +38,7 @@ import VendorReviews from "./pages/VendorReviews";
 import VendorPricingDashboard from "./pages/VendorPricingDashboard";
 import AdminPricingDashboard from "./pages/AdminPricingDashboard";
 import MyCoupons from "./pages/MyCoupons";
+import AdminCoupons from "./pages/AdminCoupons";
 import AffiliateDashboard from "./pages/AffiliateDashboard";
 
 // New Feature Pages
@@ -379,6 +380,14 @@ function App() {
   element={
     <ProtectedRoute>
       <AdminReviews />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/coupons"
+  element={
+    <ProtectedRoute>
+      <AdminCoupons />
     </ProtectedRoute>
   }
 />

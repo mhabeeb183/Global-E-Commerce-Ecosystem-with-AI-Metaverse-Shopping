@@ -163,9 +163,44 @@ const markCouponUsed =
     await coupon.save();
   };
 
+// =====================================
+// GET ALL COUPONS (ADMIN)
+// =====================================
+const getAllCoupons = async (req, res) => {
+  try {
+    const coupons = await Coupon.find({}).populate("user", "name email").sort({ createdAt: -1 });
+    res.status(200).json(coupons);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// =====================================
+// DELETE COUPON (ADMIN)
+// =====================================
+const deleteCoupon = async (req, res) => {
+  try {
+    const coupon = await Coupon.findByIdAndDelete(req.params.id);
+    if (!coupon) {
+      return res.status(404).json({
+        message: "Coupon not found",
+      });
+    }
+    res.status(200).json({ message: "Coupon deleted successfully" });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createCoupon,
   getMyCoupons,
   validateCoupon,
   markCouponUsed,
+  getAllCoupons,
+  deleteCoupon,
 };
