@@ -90,6 +90,9 @@ const Navbar = () => {
           <Link to="/virtual-showroom" className="hover:text-purple-400 transition-colors font-medium">
             🥽 {t("virtualShowroom", "VR Showroom")}
           </Link>
+          <Link to="/virtual-store" className="hover:text-emerald-400 transition-colors font-medium">
+            🛍️ {t("virtualStore", "360 Virtual Store")}
+          </Link>
           <Link to="/auctions" className="hover:text-yellow-400 transition-colors font-medium">
             🔨 {t("auctions")}
           </Link>
@@ -336,6 +339,9 @@ const Navbar = () => {
 
             <Link to="/virtual-showroom" className="text-lg font-medium hover:text-purple-400 py-1 transition-colors">
               🥽 {t("virtualShowroom", "VR Showroom")}
+            </Link>
+            <Link to="/virtual-store" className="text-lg font-medium hover:text-emerald-400 py-1 transition-colors">
+              🛍️ {t("virtualStore", "360 Virtual Store")}
             </Link>
             <Link to="/auctions" className="text-lg font-medium hover:text-yellow-400 py-1 transition-colors">
               🔨 {t("auctions")}

@@ -48,6 +48,7 @@ import AuctionBidding from "./pages/AuctionBidding";
 import LiveStreamPage from "./pages/LiveStreamPage";
 import FraudDashboard from "./pages/FraudDashboard";
 import VirtualShowroom from "./pages/VirtualShowroom";
+import VirtualStore from "./pages/VirtualStore";
 import VendorRequestForm from "./pages/VendorRequestForm";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -446,6 +447,12 @@ function App() {
 <Route
   path="/virtual-showroom"
   element={<VirtualShowroom />}
+/>
+
+{/* 360 Walkthrough Store */}
+<Route
+  path="/virtual-store"
+  element={<VirtualStore />}
 />
 
 {/* Become a Vendor request form */}

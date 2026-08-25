@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@google/model-viewer": "^4.3.1",
+    "@photo-sphere-viewer/core": "^5.15.1",
+    "@photo-sphere-viewer/markers-plugin": "^5.15.1",
+    "@photo-sphere-viewer/virtual-tour-plugin": "^5.15.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@react-three/xr": "^6.6.30",
@@ -22,6 +25,7 @@
     "react-dom": "^19.2.6",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^17.0.8",
+    "react-is": "^19.2.8",
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.16.0",
     "react-speech-recognition": "^4.0.1",

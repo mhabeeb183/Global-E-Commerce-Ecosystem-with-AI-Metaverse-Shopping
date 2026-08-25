@@ -47,8 +47,8 @@ const securityHeadersMiddleware = () => ({
       try {
         const host = req.headers.host || "localhost:5173";
         const hostname = host.split(":")[0];
-        const backendUrl = `http://${hostname}:5001`;
-        const wsBackendUrl = `ws://${hostname}:5001`;
+        const backendUrl = `http://${hostname}:5002`;
+        const wsBackendUrl = `ws://${hostname}:5002`;
 
         // Generate a random nonce and store in module scope
         currentNonce = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -107,11 +107,11 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5002',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5002',
         ws: true,
         changeOrigin: true,
       }
@@ -120,7 +120,7 @@ export default defineConfig({
   preview: {
     port: 4173,
     headers: {
-      "Content-Security-Policy": "default-src 'self' http://localhost:5001 https://checkout.razorpay.com; script-src 'self' 'wasm-unsafe-eval' https://checkout.razorpay.com; worker-src 'self' blob:; style-src 'self'; img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://placehold.co https://via.placeholder.com https://modelviewer.dev https://api.qrserver.com; connect-src 'self' blob: http://localhost:5001 ws://localhost:5001 https://api.razorpay.com https://modelviewer.dev https://res.cloudinary.com; frame-src 'self' https://api.razorpay.com; font-src 'self' data:; frame-ancestors 'self'; form-action 'self';",
+      "Content-Security-Policy": "default-src 'self' http://localhost:5002 https://checkout.razorpay.com; script-src 'self' 'wasm-unsafe-eval' https://checkout.razorpay.com; worker-src 'self' blob:; style-src 'self'; img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://placehold.co https://via.placeholder.com https://modelviewer.dev https://api.qrserver.com; connect-src 'self' blob: http://localhost:5002 ws://localhost:5002 https://api.razorpay.com https://modelviewer.dev https://res.cloudinary.com; frame-src 'self' https://api.razorpay.com; font-src 'self' data:; frame-ancestors 'self'; form-action 'self';",
       "X-Frame-Options": "SAMEORIGIN",
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "strict-origin-when-cross-origin"
